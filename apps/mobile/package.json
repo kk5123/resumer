@@ -1,7 +1,7 @@
 {
   "name": "resumer/mobile",
   "version": "0.1.0",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
     "start": "expo start --tunnel"
   },
