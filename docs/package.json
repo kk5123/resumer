@@ -1,0 +1,27 @@
+{
+  "name": "monorepo/docs",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve",
+    "clear": "docusaurus clear"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.9.1",
+    "@docusaurus/preset-classic": "^3.9.1",
+    "@docusaurus/theme-mermaid": "^3.9.2",
+    "lucide-react": "^0.548.0",
+    "prism-react-renderer": "^2.3.0",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "recharts": "^3.3.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.9.1",
+    "@docusaurus/tsconfig": "3.9.1",
+    "@docusaurus/types": "3.9.1",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "monorepo-template",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "start": "echo \"No workspace app configured yet. Create apps/<name> with a start script.\""
+  }
+}
