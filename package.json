@@ -4,6 +4,6 @@
   "private": true,
   "packageManager": "pnpm@9.12.0",
   "scripts": {
-    "start": "echo \"No workspace app configured yet. Create apps/<name> with a start script.\""
+    "start": "pnpm --filter resumer/mobile start"
   }
 }
