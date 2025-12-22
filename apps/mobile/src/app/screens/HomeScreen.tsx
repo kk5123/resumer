@@ -2,11 +2,12 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 
+import InterruptButton from '../../features/interrupt/components/InterruptButton';
+
 export default function HomeScreen() {
   return (
     <View style={styles.container}>
-      <Text>Home Screen</Text>
-      <StatusBar style="auto" />
+      <InterruptButton onPress={() => console.log('Interrupted!')} />
     </View>
   );
 }
