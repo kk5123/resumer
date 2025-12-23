@@ -1,10 +1,13 @@
+import { useState } from 'react';
+
 import {
   Modal,
   View,
   Text,
   Pressable,
   StyleSheet,
-  ScrollView
+  ScrollView,
+  TextInput
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,8 +19,16 @@ export type InterruptCaptureModalProps = {
   onSave: () => void;
 };
 
+export type InterruptionDraft = {
+  reasonText: string;
+};
+
 export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
+
+  const [draft, setDraft] = useState<InterruptionDraft>({
+    reasonText: ''
+  });
 
   const handleCancel = () => {
     onCancel();
@@ -49,6 +60,15 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
           <ScrollView style={styles.body}>
             <Text style={styles.sectionTitle}>きっかけ</Text>
             <TriggerTagPicker />
+
+            <Text style={styles.caption}>理由メモ（任意・1行）</Text>
+            <TextInput
+              value={draft.reasonText}
+              onChangeText={(t) => setDraft((d) => ({ ...d, reasonText: t }))}
+              style={styles.input}
+              multiline={false}
+              returnKeyType="done"
+            />
           </ScrollView>
 
           {/* Footer */}
