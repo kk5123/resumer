@@ -7,7 +7,7 @@ type Props = {
   containerStyle?: ViewStyle;
 };
 
-export default function InterruptButton({
+export function InterruptButton({
   label = '少し休む',
   subLabel = '無理せず一息つきましょう',
   onPress,

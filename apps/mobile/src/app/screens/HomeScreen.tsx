@@ -3,8 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import InterruptButton from '../../features/interrupt/components/InterruptButton';
-import { InterruptCaptureModal } from '../../features/interrupt/components/InterruptCaptureModal';
+import { InterruptButton, InterruptCaptureModal } from '../../features/interrupt';
 
 export default function HomeScreen() {
   const [visible, setVisible] = useState(false);
