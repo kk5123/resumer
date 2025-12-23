@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 import {
   Modal,
@@ -20,15 +20,29 @@ export type InterruptCaptureModalProps = {
 };
 
 export type InterruptionDraft = {
-  reasonText: string;
+  reason: string;
+  firstStep: string;
+  returnAfterMinutes: number;
 };
+
+function clampInt(n: number, min: number, max: number) {
+  if (!Number.isFinite(n)) return min;
+  return Math.max(min, Math.min(max, Math.trunc(n)));
+}
 
 export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
 
   const [draft, setDraft] = useState<InterruptionDraft>({
-    reasonText: ''
+    reason: '',
+    firstStep: '',
+    returnAfterMinutes: 5,
   });
+
+  const quickMinutes = useMemo(() => [5, 10, 25, 60], []);
+
+  const minutesMin = 1;
+  const minutesMax = 240;
 
   const handleCancel = () => {
     onCancel();
@@ -61,14 +75,67 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
             <Text style={styles.sectionTitle}>きっかけ</Text>
             <TriggerTagPicker />
 
-            <Text style={styles.caption}>理由メモ（任意・1行）</Text>
+            <Text style={styles.caption}>理由メモ</Text>
             <TextInput
-              value={draft.reasonText}
+              value={draft.reason}
               onChangeText={(t) => setDraft((d) => ({ ...d, reasonText: t }))}
               style={styles.input}
               multiline={false}
               returnKeyType="done"
             />
+
+            <Text style={styles.caption}>戻ったら最初にやること</Text>
+            <TextInput
+              value={draft.firstStep}
+              onChangeText={(t) => setDraft((d) => ({ ...d, firstStepText: t }))}
+              style={styles.input}
+              multiline={false}
+              returnKeyType="done"
+            />
+
+            <Text style={styles.sectionTitle}>何分後に戻れそう？</Text>
+
+            <View style={[styles.row, { alignItems: "center" }]}>
+              <Pressable
+                onPress={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    returnAfterMinutes: clampInt(d.returnAfterMinutes - 1, minutesMin, minutesMax),
+                  }))
+                }
+                style={styles.stepperButton}
+              >
+                <Text style={styles.stepperText}>-</Text>
+              </Pressable>
+
+              <View style={styles.minutesBox}>
+                <Text style={styles.minutesValue}>{draft.returnAfterMinutes}</Text>
+                <Text style={styles.minutesLabel}>分</Text>
+              </View>
+              <Pressable
+                onPress={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    returnAfterMinutes: clampInt(d.returnAfterMinutes + 1, minutesMin, minutesMax),
+                  }))
+                }
+                style={styles.stepperButton}
+              >
+                <Text style={styles.stepperText}>+</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.quickRow}>
+              {quickMinutes.map((m) => (
+                <Pressable
+                  key={m}
+                  onPress={() => setDraft((d) => ({ ...d, returnAfterMinutes: m }))}
+                  style={styles.quickButton}
+                >
+                  <Text style={styles.quickButtonText}>{m}</Text>
+                </Pressable>
+              ))}
+            </View>
           </ScrollView>
 
           {/* Footer */}
