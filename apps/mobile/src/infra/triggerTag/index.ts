@@ -1,0 +1,1 @@
+export { AsyncStorageCustomTriggerTagRepository } from './asyncStorage';
