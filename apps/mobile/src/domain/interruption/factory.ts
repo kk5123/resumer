@@ -1,7 +1,8 @@
-import { InterruptionId, InterruptionEvent, ISODateTime, InterruptionContext } from "./types";
+import { v7 as uuidv7 } from 'uuid';
+import { InterruptionId, InterruptionEvent, ISODateTime, InterruptionContext } from './types';
 
 function generateInterruptionId(): InterruptionId {
-  return '0' as InterruptionId;
+  return uuidv7() as InterruptionId;
 }
 
 export function addMinutes(
