@@ -1,4 +1,4 @@
-import { InterruptionEvent, InterruptionId } from "./types";
+import { InterruptionEvent } from "./types";
 
 export interface InterruptionRepository {
   save(event: InterruptionEvent): Promise<void>;

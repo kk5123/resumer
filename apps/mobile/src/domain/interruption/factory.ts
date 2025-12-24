@@ -1,5 +1,6 @@
 import { v7 as uuidv7 } from 'uuid';
-import { InterruptionId, InterruptionEvent, ISODateTime, InterruptionContext } from './types';
+import { ISODateTime, InterruptionId } from '../common.types';
+import { InterruptionEvent, InterruptionContext } from './types';
 
 function generateInterruptionId(): InterruptionId {
   return uuidv7() as InterruptionId;

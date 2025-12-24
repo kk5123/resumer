@@ -1,8 +1,8 @@
 // src/infra/interruption/AsyncStorageInterruptionRepository.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { InterruptionId } from "@/domain/common.types";
 import {
   InterruptionEvent,
-  InterruptionId,
   InterruptionRepository
 } from '@/domain/interruption';
 
