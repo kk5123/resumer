@@ -22,7 +22,7 @@ export function addMinutes(
   return result.toISOString();
 }
 
-export function createIntteruptionEvent(params: {
+export function createInterruptionEvent(params: {
   occurredAt: ISODateTime,
   recordedAt: ISODateTime,
   context: InterruptionContext}): InterruptionEvent
