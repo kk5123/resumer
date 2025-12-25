@@ -1,22 +1,22 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-export type TriggerTag = string;
-
-const PRESET_TAGS: TriggerTag[] = ['SNS', '通知', '空腹', 'その他'];
+import { PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
+import { TriggerTagId } from '@/domain/common.types';
 
 export function TriggerTagPicker() {
-  const [tags, setTags] = useState<TriggerTag[]>(PRESET_TAGS);
-  const [selected, setSelected] = useState<TriggerTag[]>([]);
+  const [customTags, setCustomTags] = useState<TriggerTag[]>();
+  const [selected, setSelected] = useState<TriggerTagId[]>([]);
   const [input, setInput] = useState('');
 
-  const toggle = (tag: TriggerTag) => {
+  const toggle = (tag: TriggerTagId) => {
     setSelected((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
     );
   };
 
   const handleAdd = () => {
+    /*
     const value = input.trim();
     if (!value) return;
     if (tags.includes(value)) {
@@ -26,6 +26,7 @@ export function TriggerTagPicker() {
       setSelected((prev) => [...prev, value]);
     }
     setInput('');
+    */
   };
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);
@@ -33,12 +34,12 @@ export function TriggerTagPicker() {
   return (
     <View style={styles.container}>
       <View style={styles.wrap}>
-        {tags.map((tag) => {
-          const active = selectedSet.has(tag);
+        {PRESET_TRIGGER_TAGS.map((tag) => {
+          const active = selectedSet.has(tag.id);
           return (
             <Pressable
-              key={tag}
-              onPress={() => toggle(tag)}
+              key={tag.id}
+              onPress={() => toggle(tag.id)}
               style={({ pressed }) => [
                 styles.chip,
                 active && styles.chipActive,
@@ -46,7 +47,7 @@ export function TriggerTagPicker() {
               ]}
             >
               <Text style={[styles.label, active && styles.labelActive]}>
-                {tag}
+                {tag.label}
               </Text>
             </Pressable>
           );
