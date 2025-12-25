@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
 import { TriggerTagId } from '@/domain/common.types';
@@ -27,6 +27,7 @@ export function TriggerTagPicker() {
       setSelected((prev) => [...prev, id]);
     }
     setInput('');
+    Keyboard.dismiss();
   };
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);

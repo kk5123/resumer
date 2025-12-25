@@ -71,7 +71,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
             <View style={{ width: 28 }} />
           </View>
 
-          <ScrollView style={styles.body}>
+          <ScrollView style={styles.body} keyboardShouldPersistTaps='handled'>
             <Text style={styles.sectionTitle}>きっかけ</Text>
             <TriggerTagPicker />
 
