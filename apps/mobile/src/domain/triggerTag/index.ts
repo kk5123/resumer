@@ -1,2 +1,2 @@
-export { PRESET_TRIGGER_TAG_IDS, isPresetTriggerTag, CustomTriggerTag } from './types';
+export { generateTriggerTagIdFromLabel, TriggerTag, PRESET_TRIGGER_TAGS, CustomTriggerTag } from './types';
 export { CustomTriggerTagRepository } from './repo';
