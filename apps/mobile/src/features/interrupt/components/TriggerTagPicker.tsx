@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
+import { generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
 import { TriggerTagId } from '@/domain/common.types';
 
 export function TriggerTagPicker() {
-  const [customTags, setCustomTags] = useState<TriggerTag[]>();
+  const [customTags, setCustomTags] = useState<TriggerTag[]>([]);
   const [selected, setSelected] = useState<TriggerTagId[]>([]);
   const [input, setInput] = useState('');
+  
+  const presetIdSet = new Set<TriggerTagId>(PRESET_TRIGGER_TAGS.map((tag) => tag.id));
+  const customIdSet = useMemo(() => new Set<TriggerTagId>(customTags.map((tag) => tag.id)), [customTags]);
 
   const toggle = (tag: TriggerTagId) => {
     setSelected((prev) =>
@@ -16,17 +19,14 @@ export function TriggerTagPicker() {
   };
 
   const handleAdd = () => {
-    /*
     const value = input.trim();
     if (!value) return;
-    if (tags.includes(value)) {
-      setSelected((prev) => (prev.includes(value) ? prev : [...prev, value]));
-    } else {
-      setTags((prev) => [...prev, value]);
-      setSelected((prev) => [...prev, value]);
+    const id = generateTriggerTagIdFromLabel(value);
+    if (!presetIdSet.has(id) && !customIdSet.has(id)) {
+      setCustomTags((prev) => [...prev, {id: id, label: value}]);
+      setSelected((prev) => [...prev, id]);
     }
     setInput('');
-    */
   };
 
   const selectedSet = useMemo(() => new Set(selected), [selected]);
@@ -53,6 +53,32 @@ export function TriggerTagPicker() {
           );
         })}
       </View>
+
+      {customTags.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>カスタム</Text>
+          <View style={styles.wrap}>
+            {customTags.map((tag) => {
+              const active = selectedSet.has(tag.id);
+              return (
+                <Pressable
+                  key={tag.id}
+                  onPress={() => toggle(tag.id)}
+                  style={({ pressed }) => [
+                    styles.chip,
+                    active && styles.chipActive,
+                    pressed && styles.chipPressed,
+                  ]}
+                >
+                  <Text style={[styles.label, active && styles.labelActive]}>
+                    {tag.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      )}
 
       <View style={styles.inputRow}>
         <TextInput
@@ -94,6 +120,8 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
+  section: { gap: 8 },
+  sectionTitle: { fontSize: 13, fontWeight: '600', color: '#4a5568' },
   label: {
     color: '#4a5568',
     fontSize: 14,
