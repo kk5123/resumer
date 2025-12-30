@@ -45,8 +45,16 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const tagPickerRef = useRef<TriggerTagPickerHandle | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     if (visible) {
       setOccurredAt(new Date().toISOString());
+
+      (async () => {
+        const { customTriggerTagRepo } = getInterruptPorts();
+        const tags = await customTriggerTagRepo.listTopUsed(10);
+        if (mounted) setInitialCustomTags(tags);
+      })();
     } else {
       setOccurredAt(null);
     }
