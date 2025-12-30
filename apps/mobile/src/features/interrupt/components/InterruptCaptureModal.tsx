@@ -11,10 +11,10 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { TriggerTagPicker } from './TriggerTagPicker';
+import { TriggerTagPicker, TriggerTagPickerHandle } from './TriggerTagPicker';
 
 import { TriggerTag } from '@/domain/triggerTag';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { getInterruptPorts } from '../ports';
 import { createInterruptionEvent } from '@/domain/interruption';
 
@@ -41,6 +41,8 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const [initialCustomTags, setInitialCustomTags] = useState<TriggerTag[]>([]);
 
   const [occurredAt, setOccurredAt] = useState<string | null>(null);
+
+  const tagPickerRef = useRef<TriggerTagPickerHandle | null>(null);
 
   useEffect(() => {
     if (visible) {
@@ -82,20 +84,30 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const handleSave = async () => {
     if (!occurredAt) return;
 
+    const now = new Date().toISOString();
+
+    const selection = tagPickerRef.current?.getSelection();
+    const triggerTagIds = selection?.selectedIds ?? [];
+    const selectedCustomTags = selection?.customTags ?? [];
+    console.log(triggerTagIds, selectedCustomTags);
+
     try {
-      const recordedAt = new Date().toISOString();
+      const { interruptionRepo, customTriggerTagRepo } = getInterruptPorts();
+      if (selectedCustomTags.length > 0) {
+        await customTriggerTagRepo.upsertUsage(selectedCustomTags, now);
+      }
+
       const event = createInterruptionEvent({
         occurredAt,
-        recordedAt,
+        recordedAt: now,
         context: {
-          triggerTagIds: [],
+          triggerTagIds,
           reasonText: draft.reasonText,
           firstStepText: draft.firstStepText,
           returnAfterMinutes: draft.returnAfterMinutes
         }
       })
 
-      const { interruptionRepo } = getInterruptPorts();
       await interruptionRepo.save(event);
       onSave();
       console.log('[InterruptionCaptureModal] saved', event.id);
@@ -128,6 +140,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
           <ScrollView style={styles.body} keyboardShouldPersistTaps='handled'>
             <Text style={styles.sectionTitle}>きっかけ</Text>
             <TriggerTagPicker
+              ref={tagPickerRef}
               initialCustomTags={initialCustomTags}
             />
 
