@@ -16,6 +16,7 @@ import { TriggerTagPicker } from './TriggerTagPicker';
 import { TriggerTag } from '@/domain/triggerTag';
 import { useEffect } from 'react';
 import { getInterruptPorts } from '../ports';
+import { createInterruptionEvent } from '@/domain/interruption';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -24,8 +25,8 @@ export type InterruptCaptureModalProps = {
 };
 
 export type InterruptionDraft = {
-  reason: string;
-  firstStep: string;
+  reasonText: string;
+  firstStepText: string;
   returnAfterMinutes: number;
 };
 
@@ -38,6 +39,16 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
   const [ready, setReady] = useState(false);
   const [initialCustomTags, setInitialCustomTags] = useState<TriggerTag[]>([]);
+
+  const [occurredAt, setOccurredAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (visible) {
+      setOccurredAt(new Date().toISOString());
+    } else {
+      setOccurredAt(null);
+    }
+  }, [visible]);
 
   useEffect(() => {
     let mounted = true;
@@ -54,8 +65,8 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
 
   const [draft, setDraft] = useState<InterruptionDraft>({
-    reason: '',
-    firstStep: '',
+    reasonText: '',
+    firstStepText: '',
     returnAfterMinutes: 5,
   });
 
@@ -68,7 +79,23 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     onCancel();
   }
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!occurredAt) return;
+
+    const recordedAt = new Date().toISOString();
+    const event = createInterruptionEvent({
+      occurredAt,
+      recordedAt,
+      context: {
+        triggerTagIds: [],
+        reasonText: draft.reasonText,
+        firstStepText: draft.firstStepText,
+        returnAfterMinutes: draft.returnAfterMinutes
+      }
+    })
+
+    const { interruptionRepo } = getInterruptPorts();
+    await interruptionRepo.save(event);
     onSave();
   };
 
@@ -101,7 +128,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
             <Text style={styles.caption}>理由メモ</Text>
             <TextInput
-              value={draft.reason}
+              value={draft.reasonText}
               onChangeText={(t) => setDraft((d) => ({ ...d, reasonText: t }))}
               style={styles.input}
               multiline={false}
@@ -110,7 +137,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
             <Text style={styles.caption}>戻ったら最初にやること</Text>
             <TextInput
-              value={draft.firstStep}
+              value={draft.firstStepText}
               onChangeText={(t) => setDraft((d) => ({ ...d, firstStepText: t }))}
               style={styles.input}
               multiline={false}
