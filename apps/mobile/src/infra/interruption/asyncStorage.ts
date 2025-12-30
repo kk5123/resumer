@@ -6,7 +6,7 @@ import {
   InterruptionRepository
 } from '@/domain/interruption';
 
-const INTERRUPTION_INDEX_KEY = "interruption:index";
+const INTERRUPTION_INDEX_KEY = "rsm:interruption:index";
 
 function eventKey(id: string): string {
   return `interruption:event:${id}`;
