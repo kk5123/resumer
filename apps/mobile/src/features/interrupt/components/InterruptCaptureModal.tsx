@@ -13,6 +13,10 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { TriggerTagPicker } from './TriggerTagPicker';
 
+import { TriggerTag } from '@/domain/triggerTag';
+import { useEffect } from 'react';
+import { getInterruptPorts } from '../ports';
+
 export type InterruptCaptureModalProps = {
   visible: boolean;
   onCancel: () => void;
@@ -32,6 +36,22 @@ function clampInt(n: number, min: number, max: number) {
 
 export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
+  const [ready, setReady] = useState(false);
+  const [initialCustomTags, setInitialCustomTags] = useState<TriggerTag[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { customTriggerTagRepo } = getInterruptPorts();
+      const tags = await customTriggerTagRepo.listTopUsed(10);
+      if (mounted) {
+        setInitialCustomTags(tags);
+        setReady(true);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
 
   const [draft, setDraft] = useState<InterruptionDraft>({
     reason: '',
@@ -51,6 +71,8 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const handleSave = () => {
     onSave();
   };
+
+  if (!ready) return null;
 
   return (
     <Modal
@@ -73,7 +95,9 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
           <ScrollView style={styles.body} keyboardShouldPersistTaps='handled'>
             <Text style={styles.sectionTitle}>きっかけ</Text>
-            <TriggerTagPicker />
+            <TriggerTagPicker
+              initialCustomTags={initialCustomTags}
+            />
 
             <Text style={styles.caption}>理由メモ</Text>
             <TextInput

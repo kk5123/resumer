@@ -4,8 +4,16 @@ import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-na
 import { generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
 import { TriggerTagId } from '@/domain/common.types';
 
-export function TriggerTagPicker() {
-  const [customTags, setCustomTags] = useState<TriggerTag[]>([]);
+import { getInterruptPorts } from '../ports';
+import { useEffect } from 'react';
+
+type Props = {
+  initialCustomTags: TriggerTag[];
+  onCustomTagsChange?: (tags: TriggerTag[]) => void;
+}
+
+export function TriggerTagPicker({ initialCustomTags, onCustomTagsChange }: Props) {
+  const [customTags, setCustomTags] = useState<TriggerTag[]>(initialCustomTags);
   const [selected, setSelected] = useState<TriggerTagId[]>([]);
   const [input, setInput] = useState('');
   
