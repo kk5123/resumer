@@ -9,7 +9,7 @@ import {
 const INTERRUPTION_INDEX_KEY = "rsm:interruption:index";
 
 function eventKey(id: string): string {
-  return `interruption:event:${id}`;
+  return `rsm:interruption:event:${id}`;
 }
 
 export class AsyncStorageInterruptionRepository

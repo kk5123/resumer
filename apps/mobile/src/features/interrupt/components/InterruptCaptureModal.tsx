@@ -82,21 +82,26 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const handleSave = async () => {
     if (!occurredAt) return;
 
-    const recordedAt = new Date().toISOString();
-    const event = createInterruptionEvent({
-      occurredAt,
-      recordedAt,
-      context: {
-        triggerTagIds: [],
-        reasonText: draft.reasonText,
-        firstStepText: draft.firstStepText,
-        returnAfterMinutes: draft.returnAfterMinutes
-      }
-    })
+    try {
+      const recordedAt = new Date().toISOString();
+      const event = createInterruptionEvent({
+        occurredAt,
+        recordedAt,
+        context: {
+          triggerTagIds: [],
+          reasonText: draft.reasonText,
+          firstStepText: draft.firstStepText,
+          returnAfterMinutes: draft.returnAfterMinutes
+        }
+      })
 
-    const { interruptionRepo } = getInterruptPorts();
-    await interruptionRepo.save(event);
-    onSave();
+      const { interruptionRepo } = getInterruptPorts();
+      await interruptionRepo.save(event);
+      onSave();
+      console.log('[InterruptionCaptureModal] saved', event.id);
+    } catch (e) {
+      console.error('[InterruptionCaptureModal] save error', e);
+    }
   };
 
   if (!ready) return null;
