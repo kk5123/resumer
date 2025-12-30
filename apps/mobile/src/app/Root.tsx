@@ -4,6 +4,8 @@ import RootNavigator from './navigation/RootNavigator';
 import { useEffect, useState } from 'react';
 import { bootstrap } from './lifecycle/bootstrap';
 
+import { DebugPanel } from './debug/DebugPanel';
+
 export default function Root() {
   const [ready, setReady] = useState(false);
 
@@ -13,7 +15,7 @@ export default function Root() {
       await bootstrap();
       if (mounted) setReady(true);
     })();
-    return () => { mounted = false;}
+    return () => { mounted = false; }
   }, []);
 
   if (!ready) return null;
@@ -22,6 +24,11 @@ export default function Root() {
     <SafeAreaProvider>
       <StatusBar style="dark" />
       <RootNavigator />
+      <DebugPanel
+        title="Storage Dump"
+        appKeyPrefix="rsm:"
+        hidden={!__DEV__}
+      />
     </SafeAreaProvider>
   );
 }
