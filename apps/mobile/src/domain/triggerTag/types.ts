@@ -1,35 +1,32 @@
 import { ISODateTime, Brand, TriggerTagId } from '../common.types'
 
-/** 文字列 → TriggerTagId にキャストするヘルパー */
-function tagId(v: string): TriggerTagId {
-  return v as TriggerTagId;
+export interface TriggerTag {
+  id: TriggerTagId;
+  label: string;
 }
 
-/** ドメインが知っている「プリセットタグID」の集合 */
-export const PRESET_TRIGGER_TAG_IDS: TriggerTagId[] = [
-  tagId('fatigue'),      // 疲労
-  tagId('hunger'),       // 空腹
-  tagId('sleepy'),       // 眠気
-  tagId('blocked'),      // 行き詰まり
-  tagId('sns'),          // SNS
-  tagId('notification'), // 通知
-  tagId('person'),       // 人
-  tagId('noise'),        // 騒音
+/** 文字列 → TriggerTagId にキャストするヘルパー */
+export function generateTriggerTagIdFromLabel(v: string): TriggerTagId {
+  return v.trim().toLowerCase().replace(/ +/g, ' ') as TriggerTagId;
+}
+
+const PRESET_TRIGGER_TAG_LABELS: string[] = [
+  '疲労',
+  '空腹',
+  '眠気',
+  '行き詰まり',
+  'SNS',
+  '通知',
+  '人',
+  '騒音',
 ];
 
-/** 内部用: 検索用に Set にしておく */
-const PRESET_TRIGGER_TAG_ID_SET = new Set<string>(
-  PRESET_TRIGGER_TAG_IDS.map((id) => id as unknown as string)
-);
-
-/** このIDがプリセットかどうかを判定する純関数 */
-export function isPresetTriggerTag(id: TriggerTagId): boolean {
-  const key = id as unknown as string;
-  return PRESET_TRIGGER_TAG_ID_SET.has(key);
-}
+export const PRESET_TRIGGER_TAGS: TriggerTag[] =
+  PRESET_TRIGGER_TAG_LABELS.map((l) => { return { id: generateTriggerTagIdFromLabel(l), label: l }});
 
 export interface CustomTriggerTag {
   id: TriggerTagId;
+  label: string;
   createdAt: ISODateTime;
   lastUsedAt: ISODateTime;
   usageCount: number;

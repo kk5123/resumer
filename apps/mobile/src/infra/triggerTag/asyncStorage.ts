@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TriggerTagId, ISODateTime } from '@/domain/common.types';
-import { CustomTriggerTagRepository, CustomTriggerTag } from '@/domain/triggerTag';
+import { CustomTriggerTagRepository, CustomTriggerTag, TriggerTag } from '@/domain/triggerTag';
 
-const CUSTOM_TRIGGER_TAGS_KEY = 'triggerTags:custom';
+const CUSTOM_TRIGGER_TAGS_KEY = 'rsm:triggerTags:custom';
 
 /**
  * AsyncStorage 実装:
@@ -13,16 +13,16 @@ export class AsyncStorageCustomTriggerTagRepository
   implements CustomTriggerTagRepository
 {
   public async upsertUsage(
-    ids: TriggerTagId[],
+    tags: TriggerTag[],
     usedAt: ISODateTime
   ): Promise<void> {
-    if (ids.length === 0) return;
+    if (tags.length === 0) return;
 
     const map = await this.loadAll();
     const usedTime = usedAt;
 
-    for (const id of ids) {
-      const key = id as unknown as string;
+    for (const tag of tags) {
+      const key = tag.id as unknown as string;
       const existing = map[key];
 
       if (existing) {
@@ -33,7 +33,8 @@ export class AsyncStorageCustomTriggerTagRepository
         };
       } else {
         const nowTag: CustomTriggerTag = {
-          id,
+          id: tag.id,
+          label: tag.label,
           createdAt: usedTime,
           lastUsedAt: usedTime,
           usageCount: 1,

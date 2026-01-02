@@ -11,7 +11,12 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
-import { TriggerTagPicker } from './TriggerTagPicker';
+import { TriggerTagPicker, TriggerTagPickerHandle } from './TriggerTagPicker';
+
+import { TriggerTag } from '@/domain/triggerTag';
+import { useEffect, useRef } from 'react';
+import { getInterruptPorts } from '../ports';
+import { createInterruptionEvent } from '@/domain/interruption';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -20,8 +25,8 @@ export type InterruptCaptureModalProps = {
 };
 
 export type InterruptionDraft = {
-  reason: string;
-  firstStep: string;
+  reasonText: string;
+  firstStepText: string;
   returnAfterMinutes: number;
 };
 
@@ -32,10 +37,46 @@ function clampInt(n: number, min: number, max: number) {
 
 export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
+  const [ready, setReady] = useState(false);
+  const [initialCustomTags, setInitialCustomTags] = useState<TriggerTag[]>([]);
+
+  const [occurredAt, setOccurredAt] = useState<string | null>(null);
+
+  const tagPickerRef = useRef<TriggerTagPickerHandle | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    if (visible) {
+      setOccurredAt(new Date().toISOString());
+
+      (async () => {
+        const { customTriggerTagRepo } = getInterruptPorts();
+        const tags = await customTriggerTagRepo.listTopUsed(10);
+        if (mounted) setInitialCustomTags(tags);
+      })();
+    } else {
+      setOccurredAt(null);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { customTriggerTagRepo } = getInterruptPorts();
+      const tags = await customTriggerTagRepo.listTopUsed(10);
+      if (mounted) {
+        setInitialCustomTags(tags);
+        setReady(true);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
 
   const [draft, setDraft] = useState<InterruptionDraft>({
-    reason: '',
-    firstStep: '',
+    reasonText: '',
+    firstStepText: '',
     returnAfterMinutes: 5,
   });
 
@@ -48,9 +89,42 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     onCancel();
   }
 
-  const handleSave = () => {
-    onSave();
+  const handleSave = async () => {
+    if (!occurredAt) return;
+
+    const now = new Date().toISOString();
+
+    const selection = tagPickerRef.current?.getSelection();
+    const triggerTagIds = selection?.selectedIds ?? [];
+    const selectedCustomTags = selection?.customTags ?? [];
+    console.log(triggerTagIds, selectedCustomTags);
+
+    try {
+      const { interruptionRepo, customTriggerTagRepo } = getInterruptPorts();
+      if (selectedCustomTags.length > 0) {
+        await customTriggerTagRepo.upsertUsage(selectedCustomTags, now);
+      }
+
+      const event = createInterruptionEvent({
+        occurredAt,
+        recordedAt: now,
+        context: {
+          triggerTagIds,
+          reasonText: draft.reasonText,
+          firstStepText: draft.firstStepText,
+          returnAfterMinutes: draft.returnAfterMinutes
+        }
+      })
+
+      await interruptionRepo.save(event);
+      onSave();
+      console.log('[InterruptionCaptureModal] saved', event.id);
+    } catch (e) {
+      console.error('[InterruptionCaptureModal] save error', e);
+    }
   };
+
+  if (!ready) return null;
 
   return (
     <Modal
@@ -71,13 +145,16 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
             <View style={{ width: 28 }} />
           </View>
 
-          <ScrollView style={styles.body}>
+          <ScrollView style={styles.body} keyboardShouldPersistTaps='handled'>
             <Text style={styles.sectionTitle}>きっかけ</Text>
-            <TriggerTagPicker />
+            <TriggerTagPicker
+              ref={tagPickerRef}
+              initialCustomTags={initialCustomTags}
+            />
 
             <Text style={styles.caption}>理由メモ</Text>
             <TextInput
-              value={draft.reason}
+              value={draft.reasonText}
               onChangeText={(t) => setDraft((d) => ({ ...d, reasonText: t }))}
               style={styles.input}
               multiline={false}
@@ -86,7 +163,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
             <Text style={styles.caption}>戻ったら最初にやること</Text>
             <TextInput
-              value={draft.firstStep}
+              value={draft.firstStepText}
               onChangeText={(t) => setDraft((d) => ({ ...d, firstStepText: t }))}
               style={styles.input}
               multiline={false}

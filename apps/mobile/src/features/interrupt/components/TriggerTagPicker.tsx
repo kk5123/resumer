@@ -1,74 +1,122 @@
-import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-export type TriggerTag = string;
+import { CustomTriggerTagRepository, generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
+import { TriggerTagId } from '@/domain/common.types';
 
-const PRESET_TAGS: TriggerTag[] = ['SNS', '通知', '空腹', 'その他'];
+import { getInterruptPorts } from '../ports';
+import { useEffect } from 'react';
 
-export function TriggerTagPicker() {
-  const [tags, setTags] = useState<TriggerTag[]>(PRESET_TAGS);
-  const [selected, setSelected] = useState<TriggerTag[]>([]);
-  const [input, setInput] = useState('');
-
-  const toggle = (tag: TriggerTag) => {
-    setSelected((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
-  };
-
-  const handleAdd = () => {
-    const value = input.trim();
-    if (!value) return;
-    if (tags.includes(value)) {
-      setSelected((prev) => (prev.includes(value) ? prev : [...prev, value]));
-    } else {
-      setTags((prev) => [...prev, value]);
-      setSelected((prev) => [...prev, value]);
-    }
-    setInput('');
-  };
-
-  const selectedSet = useMemo(() => new Set(selected), [selected]);
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.wrap}>
-        {tags.map((tag) => {
-          const active = selectedSet.has(tag);
-          return (
-            <Pressable
-              key={tag}
-              onPress={() => toggle(tag)}
-              style={({ pressed }) => [
-                styles.chip,
-                active && styles.chipActive,
-                pressed && styles.chipPressed,
-              ]}
-            >
-              <Text style={[styles.label, active && styles.labelActive]}>
-                {tag}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
-
-      <View style={styles.inputRow}>
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder="タグを追加"
-          style={styles.input}
-          onSubmitEditing={handleAdd}
-          returnKeyType="done"
-        />
-        <Pressable onPress={handleAdd} style={styles.addButton} hitSlop={8}>
-          <Text style={styles.addButtonText}>追加</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
+export type TriggerTagPickerHandle = {
+  getSelection: () => { selectedIds: TriggerTagId[]; customTags: TriggerTag[] };
 }
+
+type Props = {
+  initialCustomTags: TriggerTag[];
+  onCustomTagsChange?: (tags: TriggerTag[]) => void;
+}
+
+export const TriggerTagPicker = forwardRef<TriggerTagPickerHandle, Props>(
+  function TriggerTagPicker({ initialCustomTags, onCustomTagsChange }: Props, ref) {
+    const [customTags, setCustomTags] = useState<TriggerTag[]>(initialCustomTags);
+    const [selected, setSelected] = useState<TriggerTagId[]>([]);
+    const [input, setInput] = useState('');
+
+    const presetIdSet = new Set<TriggerTagId>(PRESET_TRIGGER_TAGS.map((tag) => tag.id));
+    const customIdSet = useMemo(() => new Set<TriggerTagId>(customTags.map((tag) => tag.id)), [customTags]);
+    const selectedSet = useMemo(() => new Set(selected), [selected]);
+
+    useImperativeHandle(ref, () => ({
+      getSelection: () => ({
+        selectedIds: selected,
+        customTags: customTags.filter((t) => selectedSet.has(t.id)),
+      }),
+    }), [selected, customTags, selectedSet]);
+
+    const toggle = (tag: TriggerTagId) => {
+      setSelected((prev) =>
+        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+      );
+    };
+
+    const handleAdd = () => {
+      const value = input.trim();
+      if (!value) return;
+      const id = generateTriggerTagIdFromLabel(value);
+      if (!presetIdSet.has(id) && !customIdSet.has(id)) {
+        setCustomTags((prev) => [...prev, { id, label: value }]);
+        setSelected((prev) => [...prev, id]);
+      }
+      setInput('');
+      Keyboard.dismiss();
+    };
+
+    return (
+      <View style={styles.container}>
+        <View style={styles.wrap}>
+          {PRESET_TRIGGER_TAGS.map((tag) => {
+            const active = selectedSet.has(tag.id);
+            return (
+              <Pressable
+                key={tag.id}
+                onPress={() => toggle(tag.id)}
+                style={({ pressed }) => [
+                  styles.chip,
+                  active && styles.chipActive,
+                  pressed && styles.chipPressed,
+                ]}
+              >
+                <Text style={[styles.label, active && styles.labelActive]}>
+                  {tag.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        {customTags.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>カスタム</Text>
+            <View style={styles.wrap}>
+              {customTags.map((tag) => {
+                const active = selectedSet.has(tag.id);
+                return (
+                  <Pressable
+                    key={tag.id}
+                    onPress={() => toggle(tag.id)}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      active && styles.chipActive,
+                      pressed && styles.chipPressed,
+                    ]}
+                  >
+                    <Text style={[styles.label, active && styles.labelActive]}>
+                      {tag.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        <View style={styles.inputRow}>
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            placeholder="タグを追加"
+            style={styles.input}
+            onSubmitEditing={handleAdd}
+            returnKeyType="done"
+          />
+          <Pressable onPress={handleAdd} style={styles.addButton} hitSlop={8}>
+            <Text style={styles.addButtonText}>追加</Text>
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: { gap: 12 },
@@ -93,6 +141,8 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     transform: [{ scale: 0.98 }],
   },
+  section: { gap: 8 },
+  sectionTitle: { fontSize: 13, fontWeight: '600', color: '#4a5568' },
   label: {
     color: '#4a5568',
     fontSize: 14,

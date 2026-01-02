@@ -1,7 +1,7 @@
-import { ISODateTime, TriggerTagId } from "../common.types";
-import { CustomTriggerTag } from "./types";
+import { ISODateTime } from "../common.types";
+import { TriggerTag, CustomTriggerTag } from "./types";
 
 export interface CustomTriggerTagRepository {
-  upsertUsage(ids: TriggerTagId[], usedAt: ISODateTime): Promise<void>;
+  upsertUsage(tags: TriggerTag[], usedAt: ISODateTime): Promise<void>;
   listTopUsed(limit: number): Promise<CustomTriggerTag[]>;
 }
