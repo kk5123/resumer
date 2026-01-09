@@ -135,6 +135,12 @@ export default function HomeScreen() {
           )}
         </View>
       )}
+
+      {!loading && !latest && (
+        <Text style={styles.empty}>
+          まだ休憩の記録はありません。{'\n'}上のボタンで初回の休憩を記録できます。
+        </Text>
+      )}
     </View>
   );
 }
@@ -164,4 +170,5 @@ const styles = StyleSheet.create({
   labelEmphasis: { fontSize: 14, fontWeight: '700', color: '#111' },
   labelLate: { color: '#b91c1c' }, // 遅延時に赤
   rowInline: { flexDirection: 'row', alignItems: 'center', gap: '10', },
+  empty: { marginTop: 16, color: '#6b7280', textAlign: 'center', fontSize: 14 },
 });

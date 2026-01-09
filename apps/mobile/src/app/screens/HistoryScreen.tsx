@@ -184,7 +184,7 @@ export function HistoryScreen() {
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {loading ? '読み込み中...' : '履歴がありません'}
+            {loading ? '読み込み中...' : '履歴がありません。休憩を記録するとここに表示されます。'}
           </Text>
         }
       />
