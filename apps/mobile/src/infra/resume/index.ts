@@ -1,0 +1,1 @@
+export { AsyncStorageResumeRepository } from './asyncStorage';
