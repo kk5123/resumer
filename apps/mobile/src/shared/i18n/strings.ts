@@ -42,7 +42,7 @@ type Key =
 const STRINGS: Record<Lang, Record<Key, string>> = {
   ja: {
     'common.loading': '読み込み中...',
-    'nav.home': 'ホーム',
+    'nav.home': 'ダッシュボード',
     'nav.history': '履歴',
     'home.card.title': '最新の作業中断',
     'home.label.occurred': '発生',
