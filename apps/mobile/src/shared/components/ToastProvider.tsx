@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { t } from '@/shared/i18n/strings';
 
 type ToastType = 'info' | 'success' | 'error';
 type ToastOptions = { type?: ToastType; duration?: number };
@@ -47,7 +48,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export function useToast() {
   const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('ToastProviderがツリーにありません');
+  if (!ctx) throw new Error(t('toastProvider.missing'));
   return ctx;
 }
 

@@ -1,5 +1,6 @@
 import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { t } from '@/shared/i18n/strings';
 
 import { CustomTriggerTagRepository, generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
 import { TriggerTagId } from '@/domain/common.types';
@@ -76,7 +77,7 @@ export const TriggerTagPicker = forwardRef<TriggerTagPickerHandle, Props>(
 
         {customTags.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>カスタム</Text>
+            <Text style={styles.sectionTitle}>{t('trigger.section.custom')}</Text>
             <View style={styles.wrap}>
               {customTags.map((tag) => {
                 const active = selectedSet.has(tag.id);
@@ -104,13 +105,13 @@ export const TriggerTagPicker = forwardRef<TriggerTagPickerHandle, Props>(
           <TextInput
             value={input}
             onChangeText={setInput}
-            placeholder="タグを追加"
+            placeholder={t('trigger.input.placeholder')}
             style={styles.input}
             onSubmitEditing={handleAdd}
             returnKeyType="done"
           />
           <Pressable onPress={handleAdd} style={styles.addButton} hitSlop={8}>
-            <Text style={styles.addButtonText}>追加</Text>
+            <Text style={styles.addButtonText}>{t('trigger.button.add')}</Text>
           </Pressable>
         </View>
       </View>
