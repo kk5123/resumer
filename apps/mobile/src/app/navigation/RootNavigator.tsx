@@ -1,16 +1,27 @@
 // navigation/RootNavigator.tsx
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../screens/HomeScreen';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-const Stack = createNativeStackNavigator();
+import HomeScreen from '../screens/HomeScreen';
+import { HistoryScreen } from '../screens/HistoryScreen';
+
+const Tab = createBottomTabNavigator();
 
 export default function RootNavigator() {
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="Home" component={HomeScreen} />
-      </Stack.Navigator>
+      <Tab.Navigator screenOptions={{ headerShown: false }}>
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ tabBarLabel: 'ホーム' }}
+        />
+        <Tab.Screen
+          name="History"
+          component={HistoryScreen}
+          options={{ tabBarLabel: '履歴' }}
+        />
+      </Tab.Navigator>
     </NavigationContainer>
   );
 }
