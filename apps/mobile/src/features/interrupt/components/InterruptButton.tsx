@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { t } from '@/shared/i18n/strings';
 
 type Props = {
   label?: string;
@@ -8,8 +9,8 @@ type Props = {
 };
 
 export function InterruptButton({
-  label = '少し休む',
-  subLabel = '無理せず一息つきましょう',
+  label = t('interruptButton.label'),
+  subLabel = t('interruptButton.subLabel'),
   onPress,
   containerStyle,
 }: Props) {
