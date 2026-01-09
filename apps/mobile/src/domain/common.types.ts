@@ -6,3 +6,5 @@ export type Brand<K, T extends string> = K & { readonly __brand: T };
 
 export type InterruptionId = Brand<string, "InterruptionId">;
 export type TriggerTagId   = Brand<string, "TriggerTagId">;
+
+export type ResumeId = Brand<string, 'ResumeID'>;

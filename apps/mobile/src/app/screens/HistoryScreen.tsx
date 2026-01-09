@@ -12,12 +12,16 @@ import { getInterruptPorts } from '@/features/interrupt/ports';
 import { InterruptionEvent } from '@/domain/interruption';
 import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
 import { addMinutes } from '@/domain/interruption/factory';
+import { ResumeEvent } from '@/domain/resume/types';
+import { getResumePorts } from '@/features/resume/ports';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Item = InterruptionEvent & {
   tagLabels: string[];
   scheduledLocal?: string | null;
   occurredLocal: string;
   recordedLocal: string;
+  resumeStatus?: ResumeEvent['status'];
 };
 
 function formatLocalShort(iso: string) {
@@ -41,6 +45,7 @@ export function HistoryScreen() {
     setLoading(true);
     try {
       const { interruptionRepo, customTriggerTagRepo } = getInterruptPorts();
+      const { resumeRepo } = getResumePorts();
 
       const [events, customTags] = await Promise.all([
         interruptionRepo.listRecent(50),            // 取得は新しい順 (実装依存)
@@ -55,26 +60,31 @@ export function HistoryScreen() {
         (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()
       );
 
-      const resolved = sorted.map((ev) => {
-        const labels = (ev.context.triggerTagIds ?? []).map((id) => {
-          return presetMap.get(id) ?? customMap.get(id) ?? id;
-        });
-        const occurredLocal = formatLocalShort(ev.occurredAt);
-        const recordedLocal = formatLocalShort(ev.recordedAt);
-        const scheduled =
-          ev.context.returnAfterMinutes != null
-            ? addMinutes(ev.occurredAt, ev.context.returnAfterMinutes)
-            : null;
-        const scheduledLocal = scheduled ? formatLocalShort(scheduled) : null;
+      const resolved = await Promise.all(
+        sorted.map(async (ev) => {
+          const labels = (ev.context.triggerTagIds ?? []).map((id) => {
+            return presetMap.get(id) ?? customMap.get(id) ?? id;
+          });
+          const occurredLocal = formatLocalShort(ev.occurredAt);
+          const recordedLocal = formatLocalShort(ev.recordedAt);
+          const scheduled =
+            ev.context.returnAfterMinutes != null
+              ? addMinutes(ev.occurredAt, ev.context.returnAfterMinutes)
+              : null;
+          const scheduledLocal = scheduled ? formatLocalShort(scheduled) : null;
 
-        return {
-          ...ev,
-          tagLabels: labels,           // 常に配列
-          occurredLocal,
-          recordedLocal,
-          scheduledLocal,
-        };
-      });
+          const latestResume = await resumeRepo.findLatestByInterruptionId(ev.id);
+
+          return {
+            ...ev,
+            tagLabels: labels,
+            occurredLocal,
+            recordedLocal,
+            scheduledLocal,
+            resumeStatus: latestResume?.status,
+          };
+        })
+      );
 
       setItems(resolved);
     } finally {
@@ -82,9 +92,12 @@ export function HistoryScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+      return () => { };
+    }, [load])
+  );
 
   function monthKey(iso: string) {
     const d = new Date(iso);
@@ -100,6 +113,24 @@ export function HistoryScreen() {
 
     const tags = item.tagLabels ?? [];
 
+    const statusLabel = (() => {
+      switch (item.resumeStatus) {
+        case 'resumed': return '復帰済み';
+        case 'snoozed': return 'あとで戻る';
+        case 'abandoned': return '未復帰';
+        default: return '未復帰';
+      }
+    })();
+
+    const statusStyle = (() => {
+      switch (item.resumeStatus) {
+        case 'resumed': return [styles.badge, styles.badgeSuccess];
+        case 'snoozed': return [styles.badge, styles.badgeSnooze];
+        case 'abandoned': return [styles.badge, styles.badgeAbandoned];
+        default: return [styles.badge, styles.badgeAbandoned];
+      }
+    })();
+
     return (
       <View>
         {showMonthHeader && (
@@ -107,12 +138,14 @@ export function HistoryScreen() {
             <Text style={styles.monthText}>{curMonth}</Text>
           </View>
         )}
-        <View style={styles.card}>
+        <View style={[styles.card,
+          item.resumeStatus === 'resumed' && styles.cardDone,
+          item.resumeStatus === 'snoozed' && styles.cardSnooze,
+        ]}>
           <View style={styles.rowSpace}>
             <Text style={styles.title}>{item.occurredLocal}</Text>
-            <Text style={styles.badge}>新しい順</Text>
+            <Text style={statusStyle}>{statusLabel}</Text>
           </View>
-          <Text style={styles.meta}>記録: {item.recordedLocal}</Text>
 
           <View style={styles.tagRow}>
             {item.tagLabels.length === 0 ? (
@@ -210,4 +243,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
+
+  // styles 追加
+  badgeSuccess: { backgroundColor: '#dcfce7', color: '#15803d' },
+  badgeSnooze: { backgroundColor: '#fef9c3', color: '#92400e' },
+  badgeAbandoned: { backgroundColor: '#fee2e2', color: '#b91c1c' },
+  cardDone: { backgroundColor: '#f7fff9', borderColor: '#bbf7d0' },
+  cardSnooze: { backgroundColor: '#fffdf3', borderColor: '#fef3c7' },
 });
