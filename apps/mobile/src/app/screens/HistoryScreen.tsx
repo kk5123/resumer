@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { getInterruptPorts } from '@/features/interrupt/ports';
 import { InterruptionEvent } from '@/domain/interruption';
@@ -15,7 +15,6 @@ import { addMinutes } from '@/domain/interruption/factory';
 import { ResumeEvent } from '@/domain/resume/types';
 import { getResumePorts } from '@/features/resume/ports';
 import { useFocusEffect } from '@react-navigation/native';
-import { t } from '@/shared/i18n/strings';
 
 type Item = InterruptionEvent & {
   tagLabels: string[];
@@ -116,10 +115,10 @@ export function HistoryScreen() {
 
     const statusLabel = (() => {
       switch (item.resumeStatus) {
-        case 'resumed': return t('history.status.resumed');
-        case 'snoozed': return t('history.status.snoozed');
-        case 'abandoned': return t('history.status.abandoned');
-        default: return t('history.status.abandoned');
+        case 'resumed': return '復帰済み';
+        case 'snoozed': return 'あとで戻る';
+        case 'abandoned': return '未復帰';
+        default: return '未復帰';
       }
     })();
 
@@ -150,7 +149,7 @@ export function HistoryScreen() {
 
           <View style={styles.tagRow}>
             {item.tagLabels.length === 0 ? (
-              <Text style={styles.tagEmpty}>{t('history.tag.none')}</Text>
+              <Text style={styles.tagEmpty}>タグなし</Text>
             ) : (
               item.tagLabels.map((label, idx) => (
                 <View key={idx} style={styles.chip}>
@@ -160,32 +159,38 @@ export function HistoryScreen() {
             )}
           </View>
 
-          <Text style={styles.body}>{t('history.body.reasonPrefix')}: {item.context.reasonText || '-'}</Text>
-          <Text style={styles.body}>{t('history.body.firstStepPrefix')}: {item.context.firstStepText || '-'}</Text>
+          <Text style={styles.body}>理由: {item.context.reasonText || '-'}</Text>
+          <Text style={styles.body}>復帰後の初手: {item.context.firstStepText || '-'}</Text>
           <Text style={styles.meta}>
-            {t('history.body.returnAfterPrefix')}: {item.context.returnAfterMinutes ?? '-'} 分
+            予定復帰まで: {item.context.returnAfterMinutes ?? '-'} 分
           </Text>
           {item.scheduledLocal && (
-            <Text style={styles.meta}>{t('history.body.scheduledPrefix')}: {item.scheduledLocal}</Text>
+            <Text style={styles.meta}>予定復帰時刻: {item.scheduledLocal}</Text>
           )}
         </View>
       </View>
     );
   };
 
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+        contentInsetAdjustmentBehavior="never"
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingTop: insets.top },            // top を手動で1回だけ足す
+        ]}
         renderItem={renderItem}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={load} />
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {loading ? t('common.loading') : t('history.empty')}
+            {loading ? '読み込み中...' : '履歴がありません。休憩を記録するとここに表示されます。'}
           </Text>
         }
       />
@@ -195,7 +200,7 @@ export function HistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
-  listContent: { padding: 12, gap: 10 },
+  listContent: { padding: 12, gap: 10, },
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
