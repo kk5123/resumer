@@ -19,6 +19,27 @@ export default function HomeScreen() {
   const { interruptionRepo } = getInterruptPorts();
   const { resumeRepo } = getResumePorts();
 
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 10_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const resumeDiff = useMemo(() => {
+    if (!latest?.scheduledResumeAt) return { text: '予定未設定', isLate: false };
+    const scheduled = new Date(latest.scheduledResumeAt).getTime();
+    if (Number.isNaN(scheduled)) return { text: '予定未設定', isLate: false };
+
+    const diffMs = now - scheduled; // 遅延なら正、早着なら負にしてもOKだがここでは遅延=正にするか逆に合わせるか決める
+    const diffMin = Math.round(diffMs / 60000); // 遅延なら正、予定より早いなら負
+    const sign = diffMin > 0 ? '+' : diffMin < 0 ? '-' : '±';
+    const absMin = Math.abs(diffMin);
+    const text =
+      absMin === 0 ? '±0分（予定どおり）' : `${sign}${absMin}分`;
+
+    return { text, isLate: diffMin > 0 };
+  }, [latest?.scheduledResumeAt, now]);
+
   const loadLatest = useCallback(async () => {
     setLoading(true);
     try {
@@ -86,14 +107,19 @@ export default function HomeScreen() {
 
       {shouldShowCard && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>直近の中断</Text>
+          <Text style={styles.cardTitle}>最新の作業中断</Text>
           {loading && <ActivityIndicator />}
           {!loading && latest && (
             <>
               <Text style={styles.label}>発生: {formattedOccurred}</Text>
-              <Text style={styles.label}>
-                予定復帰: {latest.scheduledResumeAt ? new Date(latest.scheduledResumeAt).toLocaleString('ja-JP') : '未設定'}
-              </Text>
+              <View style={styles.rowInline}>
+                <Text style={styles.label}>
+                  予定復帰: {latest.scheduledResumeAt ? new Date(latest.scheduledResumeAt).toLocaleString('ja-JP') : '未設定'}
+                </Text>
+                <Text style={[styles.labelEmphasis, resumeDiff.isLate && styles.labelLate]}>
+                  {resumeDiff.text}
+                </Text>
+              </View>
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.primary} onPress={handleResume}>
                   <Text style={styles.primaryText}>復帰する</Text>
@@ -134,4 +160,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dangerText: { color: '#b91c1c', fontWeight: '700' },
+
+  labelEmphasis: { fontSize: 14, fontWeight: '700', color: '#111' },
+  labelLate: { color: '#b91c1c' }, // 遅延時に赤
+  rowInline: { flexDirection: 'row', alignItems: 'center', gap: '10', },
 });
