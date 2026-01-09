@@ -67,6 +67,14 @@ export default function HomeScreen() {
     showToast('休憩を5分延長しました。(通知は未実装)', { type: 'info' });
   };
 
+  const handleAbandon = async () => {
+    if (!latest) return;
+    const event = createResumeEvent({ interruptionId: latest.id, status: 'abandoned' });
+    await resumeRepo.save(event);
+    setLatestResume(event);
+    showToast('作業を終了しました', { type: 'success' });
+  };
+
   return (
     <View style={styles.container}>
       <InterruptButton onPress={() => setVisible((v) => !v)} />
@@ -91,7 +99,10 @@ export default function HomeScreen() {
                   <Text style={styles.primaryText}>復帰する</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondary} onPress={handleSnooze5}>
-                  <Text style={styles.secondaryText}>あと5分</Text>
+                  <Text style={styles.secondaryText}>5分延長する</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.danger} onPress={handleAbandon}>
+                  <Text style={styles.dangerText}>終了する</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -113,4 +124,14 @@ const styles = StyleSheet.create({
   primaryText: { color: '#fff', fontWeight: '700' },
   secondary: { flex: 1, borderWidth: 1, borderColor: '#d1d5db', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   secondaryText: { color: '#374151', fontWeight: '700' },
+  danger: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    backgroundColor: '#fef2f2',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  dangerText: { color: '#b91c1c', fontWeight: '700' },
 });
