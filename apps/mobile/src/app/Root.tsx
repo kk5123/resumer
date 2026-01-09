@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import RootNavigator from './navigation/RootNavigator';
 import { useEffect, useState } from 'react';
 import { bootstrap } from './lifecycle/bootstrap';
+import { ToastProvider } from '@/shared/components/ToastProvider';
 
 import { DebugPanel } from './debug/DebugPanel';
 
@@ -23,12 +24,14 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <RootNavigator />
-      <DebugPanel
-        title="Storage Dump"
-        appKeyPrefix="rsm:"
-        hidden={!__DEV__}
-      />
+      <ToastProvider>
+        <RootNavigator />
+        <DebugPanel
+          title="Storage Dump"
+          appKeyPrefix="rsm:"
+          hidden={!__DEV__}
+        />
+        </ToastProvider>
     </SafeAreaProvider>
   );
 }

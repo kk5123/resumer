@@ -6,12 +6,15 @@ import { getResumePorts } from '@/features/resume/ports';
 import { createResumeEvent } from '@/domain/resume/factory';
 import { InterruptionEvent } from '@/domain/interruption';
 import { ResumeEvent } from '@/domain/resume/types';
+import { useToast } from '@/shared/components/ToastProvider';
 
 export default function HomeScreen() {
   const [visible, setVisible] = useState(false);
   const [latest, setLatest] = useState<InterruptionEvent | null>(null);
   const [latestResume, setLatestResume] = useState<ResumeEvent | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const { showToast } = useToast();
 
   const { interruptionRepo } = getInterruptPorts();
   const { resumeRepo } = getResumePorts();
@@ -53,6 +56,7 @@ export default function HomeScreen() {
     const event = createResumeEvent({ interruptionId: latest.id, status: 'resumed' });
     await resumeRepo.save(event);
     setLatestResume(event); // 即時反映
+    showToast('復帰を記録しました。作業を再開しましょう！', { type: 'success' });
   };
 
   const handleSnooze5 = async () => {
@@ -60,6 +64,7 @@ export default function HomeScreen() {
     const event = createResumeEvent({ interruptionId: latest.id, status: 'snoozed', snoozeMinutes: 5 });
     await resumeRepo.save(event);
     setLatestResume(event);
+    showToast('休憩を5分延長しました。(通知は未実装)', { type: 'info' });
   };
 
   return (
