@@ -7,6 +7,7 @@ import { createResumeEvent } from '@/domain/resume/factory';
 import { InterruptionEvent } from '@/domain/interruption';
 import { ResumeEvent } from '@/domain/resume/types';
 import { useToast } from '@/shared/components/ToastProvider';
+import { t } from '@/shared/i18n/strings';
 
 export default function HomeScreen() {
   const [visible, setVisible] = useState(false);
@@ -26,16 +27,16 @@ export default function HomeScreen() {
   }, []);
 
   const resumeDiff = useMemo(() => {
-    if (!latest?.scheduledResumeAt) return { text: '予定未設定', isLate: false };
+    if (!latest?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
     const scheduled = new Date(latest.scheduledResumeAt).getTime();
-    if (Number.isNaN(scheduled)) return { text: '予定未設定', isLate: false };
+    if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
 
     const diffMs = now - scheduled; // 遅延なら正、早着なら負にしてもOKだがここでは遅延=正にするか逆に合わせるか決める
     const diffMin = Math.round(diffMs / 60000); // 遅延なら正、予定より早いなら負
     const sign = diffMin > 0 ? '+' : diffMin < 0 ? '-' : '±';
     const absMin = Math.abs(diffMin);
     const text =
-      absMin === 0 ? '±0分（予定どおり）' : `${sign}${absMin}分`;
+      absMin === 0 ? t('home.diff.onTime') : `${sign}${absMin}分`;
 
     return { text, isLate: diffMin > 0 };
   }, [latest?.scheduledResumeAt, now]);
@@ -77,7 +78,7 @@ export default function HomeScreen() {
     const event = createResumeEvent({ interruptionId: latest.id, status: 'resumed' });
     await resumeRepo.save(event);
     setLatestResume(event); // 即時反映
-    showToast('復帰を記録しました。作業を再開しましょう！', { type: 'success' });
+    showToast(t('home.toast.resume'), { type: 'success' });
   };
 
   const handleSnooze5 = async () => {
@@ -85,7 +86,7 @@ export default function HomeScreen() {
     const event = createResumeEvent({ interruptionId: latest.id, status: 'snoozed', snoozeMinutes: 5 });
     await resumeRepo.save(event);
     setLatestResume(event);
-    showToast('休憩を5分延長しました。(通知は未実装)', { type: 'info' });
+    showToast(t('home.toast.snooze'), { type: 'info' });
   };
 
   const handleAbandon = async () => {
@@ -93,7 +94,7 @@ export default function HomeScreen() {
     const event = createResumeEvent({ interruptionId: latest.id, status: 'abandoned' });
     await resumeRepo.save(event);
     setLatestResume(event);
-    showToast('作業を終了しました', { type: 'success' });
+    showToast(t('home.toast.abandon'), { type: 'success' });
   };
 
   return (
@@ -107,14 +108,14 @@ export default function HomeScreen() {
 
       {shouldShowCard && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>最新の作業中断</Text>
+          <Text style={styles.cardTitle}>{t('home.card.title')}</Text>
           {loading && <ActivityIndicator />}
           {!loading && latest && (
             <>
-              <Text style={styles.label}>発生: {formattedOccurred}</Text>
+              <Text style={styles.label}>{t('home.label.occurred')}: {formattedOccurred}</Text>
               <View style={styles.rowInline}>
                 <Text style={styles.label}>
-                  予定復帰: {latest.scheduledResumeAt ? new Date(latest.scheduledResumeAt).toLocaleString('ja-JP') : '未設定'}
+                  {t('home.label.scheduled')}: {latest.scheduledResumeAt ? new Date(latest.scheduledResumeAt).toLocaleString('ja-JP') : t('home.label.scheduledUnset')}
                 </Text>
                 <Text style={[styles.labelEmphasis, resumeDiff.isLate && styles.labelLate]}>
                   {resumeDiff.text}
@@ -122,13 +123,13 @@ export default function HomeScreen() {
               </View>
               <View style={styles.actions}>
                 <TouchableOpacity style={styles.primary} onPress={handleResume}>
-                  <Text style={styles.primaryText}>復帰する</Text>
+                  <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.secondary} onPress={handleSnooze5}>
-                  <Text style={styles.secondaryText}>5分延長する</Text>
+                  <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.danger} onPress={handleAbandon}>
-                  <Text style={styles.dangerText}>終了する</Text>
+                  <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
                 </TouchableOpacity>
               </View>
             </>
@@ -138,7 +139,7 @@ export default function HomeScreen() {
 
       {!loading && !latest && (
         <Text style={styles.empty}>
-          まだ休憩の記録はありません。{'\n'}上のボタンで初回の休憩を記録できます。
+          {t('home.empty')}
         </Text>
       )}
     </View>
@@ -169,6 +170,6 @@ const styles = StyleSheet.create({
 
   labelEmphasis: { fontSize: 14, fontWeight: '700', color: '#111' },
   labelLate: { color: '#b91c1c' }, // 遅延時に赤
-  rowInline: { flexDirection: 'row', alignItems: 'center', gap: '10', },
+  rowInline: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   empty: { marginTop: 16, color: '#6b7280', textAlign: 'center', fontSize: 14 },
 });

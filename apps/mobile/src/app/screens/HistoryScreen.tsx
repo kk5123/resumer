@@ -15,6 +15,7 @@ import { addMinutes } from '@/domain/interruption/factory';
 import { ResumeEvent } from '@/domain/resume/types';
 import { getResumePorts } from '@/features/resume/ports';
 import { useFocusEffect } from '@react-navigation/native';
+import { t } from '@/shared/i18n/strings';
 
 type Item = InterruptionEvent & {
   tagLabels: string[];
@@ -115,10 +116,10 @@ export function HistoryScreen() {
 
     const statusLabel = (() => {
       switch (item.resumeStatus) {
-        case 'resumed': return '復帰済み';
-        case 'snoozed': return 'あとで戻る';
-        case 'abandoned': return '未復帰';
-        default: return '未復帰';
+        case 'resumed': return t('history.status.resumed');
+        case 'snoozed': return t('history.status.snoozed');
+        case 'abandoned': return t('history.status.abandoned');
+        default: return t('history.status.abandoned');
       }
     })();
 
@@ -149,7 +150,7 @@ export function HistoryScreen() {
 
           <View style={styles.tagRow}>
             {item.tagLabels.length === 0 ? (
-              <Text style={styles.tagEmpty}>タグなし</Text>
+              <Text style={styles.tagEmpty}>{t('history.tag.none')}</Text>
             ) : (
               item.tagLabels.map((label, idx) => (
                 <View key={idx} style={styles.chip}>
@@ -159,13 +160,13 @@ export function HistoryScreen() {
             )}
           </View>
 
-          <Text style={styles.body}>理由: {item.context.reasonText || '-'}</Text>
-          <Text style={styles.body}>復帰後の初手: {item.context.firstStepText || '-'}</Text>
+          <Text style={styles.body}>{t('history.body.reasonPrefix')}: {item.context.reasonText || '-'}</Text>
+          <Text style={styles.body}>{t('history.body.firstStepPrefix')}: {item.context.firstStepText || '-'}</Text>
           <Text style={styles.meta}>
-            予定復帰まで: {item.context.returnAfterMinutes ?? '-'} 分
+            {t('history.body.returnAfterPrefix')}: {item.context.returnAfterMinutes ?? '-'} 分
           </Text>
           {item.scheduledLocal && (
-            <Text style={styles.meta}>予定復帰時刻: {item.scheduledLocal}</Text>
+            <Text style={styles.meta}>{t('history.body.scheduledPrefix')}: {item.scheduledLocal}</Text>
           )}
         </View>
       </View>
@@ -184,7 +185,7 @@ export function HistoryScreen() {
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {loading ? '読み込み中...' : '履歴がありません。休憩を記録するとここに表示されます。'}
+            {loading ? t('common.loading') : t('history.empty')}
           </Text>
         }
       />
