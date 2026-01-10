@@ -18,6 +18,7 @@ import { useEffect, useRef } from 'react';
 import { getInterruptPorts } from '../ports';
 import { createInterruptionEvent } from '@/domain/interruption';
 import { t } from '@/shared/i18n/strings';
+import { useToast } from '@/shared/components/ToastProvider';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -44,6 +45,8 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const [occurredAt, setOccurredAt] = useState<string | null>(null);
 
   const tagPickerRef = useRef<TriggerTagPickerHandle | null>(null);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     let mounted = true;
@@ -122,6 +125,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
       console.log('[InterruptionCaptureModal] saved', event.id);
     } catch (e) {
       console.error('[InterruptionCaptureModal] save error', e);
+      showToast(t('toast.save.failed'));
     }
   };
 
