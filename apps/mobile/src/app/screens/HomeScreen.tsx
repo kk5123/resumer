@@ -21,24 +21,25 @@ export default function HomeScreen() {
   const { resumeRepo } = getResumePorts();
 
   const [now, setNow] = useState(() => Date.now());
+  // now 更新間隔を 1秒に（負荷が気になるなら2〜5秒でも可）
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), 10_000);
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, []);
 
+  // 秒単位の差分表示
   const resumeDiff = useMemo(() => {
     if (!latest?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
     const scheduled = new Date(latest.scheduledResumeAt).getTime();
     if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
 
-    const diffMs = now - scheduled; // 遅延なら正、早着なら負にしてもOKだがここでは遅延=正にするか逆に合わせるか決める
-    const diffMin = Math.round(diffMs / 60000); // 遅延なら正、予定より早いなら負
-    const sign = diffMin > 0 ? '+' : diffMin < 0 ? '-' : '±';
-    const absMin = Math.abs(diffMin);
-    const text =
-      absMin === 0 ? t('home.diff.onTime') : `${sign}${absMin}分`;
+    const diffMs = now - scheduled;           // 遅延なら正、早ければ負
+    const diffSec = Math.round(diffMs / 1000);
+    const sign = diffSec > 0 ? '超過' : 'あと';
+    const absSec = Math.abs(diffSec);
+    const text = absSec === 0 ? t('home.diff.onTime') : `${sign}${absSec}秒`;
 
-    return { text, isLate: diffMin > 0 };
+    return { text, isLate: diffSec > 0 };
   }, [latest?.scheduledResumeAt, now]);
 
   const loadLatest = useCallback(async () => {
