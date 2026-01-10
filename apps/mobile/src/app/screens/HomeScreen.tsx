@@ -32,14 +32,20 @@ export default function HomeScreen() {
     if (!latest?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
     const scheduled = new Date(latest.scheduledResumeAt).getTime();
     if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
-
-    const diffMs = now - scheduled;           // 遅延なら正、早ければ負
-    const diffSec = Math.round(diffMs / 1000);
-    const sign = diffSec > 0 ? '超過' : 'あと';
+  
+    const diffSec = Math.round((now - scheduled) / 1000); // 遅延なら正、早ければ負
+    const isLate = diffSec > 0;
+    const sign = isLate ? '超過' : 'あと';
     const absSec = Math.abs(diffSec);
-    const text = absSec === 0 ? t('home.diff.onTime') : `${sign}${absSec}秒`;
-
-    return { text, isLate: diffSec > 0 };
+  
+    const mins = Math.floor(absSec / 60);
+    const secs = absSec % 60;
+    const text =
+      absSec === 0
+        ? t('home.diff.onTime')
+        : `${sign}${mins}分${String(secs).padStart(2, '0')}秒`;
+  
+    return { text, isLate };
   }, [latest?.scheduledResumeAt, now]);
 
   const loadLatest = useCallback(async () => {

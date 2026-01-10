@@ -45,7 +45,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'nav.home': 'ダッシュボード',
     'nav.history': '履歴',
     'home.card.title': '最新の作業中断',
-    'home.label.occurred': '発生',
+    'home.label.occurred': '中断発生',
     'home.label.scheduled': '再開予定',
     'home.label.scheduledUnset': '予定未設定',
     'home.diff.onTime': '±0分（予定どおり）',
