@@ -9,6 +9,19 @@ import { ResumeEvent } from '@/domain/resume/types';
 import { useToast } from '@/shared/components/ToastProvider';
 import { t } from '@/shared/i18n/strings';
 import { formatDiffHuman } from '@/shared/utils/date';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+
+function Header({ onPressSettings }: { onPressSettings: () => void }) {
+  return (
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>再開アシスト</Text>
+      <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
+        <Ionicons name="settings-outline" size={22} color="#1f2937" />
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const [visible, setVisible] = useState(false);
@@ -32,11 +45,11 @@ export default function HomeScreen() {
     if (!latest?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
     const scheduled = new Date(latest.scheduledResumeAt).getTime();
     if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
-  
+
     const diffMs = now - scheduled; // 遅延なら正、早ければ負
     const isLate = diffMs > 0;
     const text = formatDiffHuman(diffMs, { includeSeconds: true });
-  
+
     return { text, isLate };
   }, [latest?.scheduledResumeAt, now]);
 
@@ -97,7 +110,9 @@ export default function HomeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top','left','right']}>
+      <Header onPressSettings={() => { }} />
+
       <InterruptButton onPress={() => setVisible((v) => !v)} />
       <InterruptCaptureModal
         visible={visible}
@@ -141,12 +156,24 @@ export default function HomeScreen() {
           {t('home.empty')}
         </Text>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', padding: 16 },
+  header: {
+    height: 56,
+    width: '100%',
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
+  headerButton: {
+    paddingHorizontal: 6,
+  },
+  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   label: { fontSize: 13, color: '#1f2937' },
