@@ -8,6 +8,7 @@ import { InterruptionEvent } from '@/domain/interruption';
 import { ResumeEvent } from '@/domain/resume/types';
 import { useToast } from '@/shared/components/ToastProvider';
 import { t } from '@/shared/i18n/strings';
+import { formatDiffHuman } from '@/shared/utils/date';
 
 export default function HomeScreen() {
   const [visible, setVisible] = useState(false);
@@ -27,23 +28,14 @@ export default function HomeScreen() {
     return () => clearInterval(t);
   }, []);
 
-  // 秒単位の差分表示
   const resumeDiff = useMemo(() => {
     if (!latest?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
     const scheduled = new Date(latest.scheduledResumeAt).getTime();
     if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
   
-    const diffSec = Math.round((now - scheduled) / 1000); // 遅延なら正、早ければ負
-    const isLate = diffSec > 0;
-    const sign = isLate ? '超過' : 'あと';
-    const absSec = Math.abs(diffSec);
-  
-    const mins = Math.floor(absSec / 60);
-    const secs = absSec % 60;
-    const text =
-      absSec === 0
-        ? t('home.diff.onTime')
-        : `${sign}${mins}分${String(secs).padStart(2, '0')}秒`;
+    const diffMs = now - scheduled; // 遅延なら正、早ければ負
+    const isLate = diffMs > 0;
+    const text = formatDiffHuman(diffMs, { includeSeconds: true });
   
     return { text, isLate };
   }, [latest?.scheduledResumeAt, now]);

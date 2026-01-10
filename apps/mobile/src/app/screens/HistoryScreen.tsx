@@ -16,6 +16,7 @@ import { ResumeEvent } from '@/domain/resume/types';
 import { getResumePorts } from '@/features/resume/ports';
 import { useFocusEffect } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
+import { formatLocalShort } from '@/shared/utils/date';
 
 type Item = InterruptionEvent & {
   tagLabels: string[];
@@ -24,19 +25,6 @@ type Item = InterruptionEvent & {
   recordedLocal: string;
   resumeStatus?: ResumeEvent['status'];
 };
-
-function formatLocalShort(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat('ja-JP', {
-    month: 'numeric',   // 3
-    day: 'numeric',     // 12
-    weekday: 'short',   // (火)
-    hour: '2-digit',    // 14
-    minute: '2-digit',  // 05
-    hourCycle: 'h23',   // 24時間表記
-  }).format(d);
-}
 
 export function HistoryScreen() {
   const [items, setItems] = useState<Item[]>([]);

@@ -37,7 +37,14 @@ type Key =
   | 'interruptModal.section.returnAfter'
   | 'interruptModal.unit.minute'
   | 'interruptModal.action.save'
-  | 'toastProvider.missing';
+  | 'toastProvider.missing'
+  | 'duration.unit.day'
+  | 'duration.unit.hour'
+  | 'duration.unit.minute'
+  | 'duration.unit.second'
+  | 'duration.sign.zero'
+  | 'duration.sign.plus'
+  | 'duration.sign.minus';
 
 const STRINGS: Record<Lang, Record<Key, string>> = {
   ja: {
@@ -78,6 +85,13 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'interruptModal.unit.minute': '分',
     'interruptModal.action.save': '中断する',
     'toastProvider.missing': 'ToastProviderがツリーにありません',
+    'duration.unit.day': '日',
+    'duration.unit.hour': '時間',
+    'duration.unit.minute': '分',
+    'duration.unit.second': '秒',
+    'duration.sign.zero': 'ちょうど',
+    'duration.sign.plus': '超過',
+    'duration.sign.minus': 'あと',
   },
 }
 
