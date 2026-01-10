@@ -64,7 +64,7 @@ export default function HomeScreen() {
   const shouldShowCard = useMemo(() => {
     if (!latest) return false;
     if (!latestResume) return true; // 復帰記録なし -> 表示
-    return latestResume.status !== 'resumed'; // 復帰済みなら非表示
+    return !['resumed', 'abandoned'].includes(latestResume.status);
   }, [latest, latestResume]);
 
   const formattedOccurred = useMemo(() => {
