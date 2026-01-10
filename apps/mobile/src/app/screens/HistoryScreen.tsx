@@ -117,18 +117,18 @@ export function HistoryScreen() {
     const statusLabel = (() => {
       switch (item.resumeStatus) {
         case 'resumed': return t('history.status.resumed');
-        case 'snoozed': return t('history.status.snoozed');
+        case 'snoozed': return t('history.status.onbreak');
         case 'abandoned': return t('history.status.abandoned');
-        default: return t('history.status.abandoned');
+        default: return t('history.status.onbreak');
       }
     })();
 
     const statusStyle = (() => {
       switch (item.resumeStatus) {
         case 'resumed': return [styles.badge, styles.badgeSuccess];
-        case 'snoozed': return [styles.badge, styles.badgeSnooze];
+        case 'snoozed': return [styles.badge, styles.badgeOnBreak];
         case 'abandoned': return [styles.badge, styles.badgeAbandoned];
-        default: return [styles.badge, styles.badgeAbandoned];
+        default: return [styles.badge, styles.badgeOnBreak];
       }
     })();
 
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
 
   // styles 追加
   badgeSuccess: { backgroundColor: '#dcfce7', color: '#15803d' },
-  badgeSnooze: { backgroundColor: '#fef9c3', color: '#92400e' },
+  badgeOnBreak: { backgroundColor: '#fef9c3', color: '#92400e' },
   badgeAbandoned: { backgroundColor: '#fee2e2', color: '#b91c1c' },
   cardDone: { backgroundColor: '#f7fff9', borderColor: '#bbf7d0' },
   cardSnooze: { backgroundColor: '#fffdf3', borderColor: '#fef3c7' },

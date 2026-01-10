@@ -17,7 +17,7 @@ type Key =
   | 'home.toast.snooze'
   | 'home.toast.abandon'
   | 'history.status.resumed'
-  | 'history.status.snoozed'
+  | 'history.status.onbreak'
   | 'history.status.abandoned'
   | 'history.tag.none'
   | 'history.body.reasonPrefix'
@@ -57,8 +57,8 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'home.toast.snooze': '中断を5分延長しました。',
     'home.toast.abandon': '作業を終了しました',
     'history.status.resumed': '再開済',
-    'history.status.snoozed': '延長',
-    'history.status.abandoned': '再開前',
+    'history.status.onbreak': '再開予定',
+    'history.status.abandoned': '終了',
     'history.tag.none': 'タグなし',
     'history.body.reasonPrefix': '理由',
     'history.body.firstStepPrefix': '再開後の初手',
