@@ -17,6 +17,7 @@ import { getResumePorts } from '@/features/resume/ports';
 import { useFocusEffect } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
 import { formatLocalShort } from '@/shared/utils/date';
+import { HistoryItem } from '@/features/history';
 
 type Item = InterruptionEvent & {
   tagLabels: string[];
@@ -100,26 +101,6 @@ export function HistoryScreen() {
     const prevMonth = prev ? monthKey(prev.occurredAt) : null;
     const showMonthHeader = index === 0 || curMonth !== prevMonth;
 
-    const tags = item.tagLabels ?? [];
-
-    const statusLabel = (() => {
-      switch (item.resumeStatus) {
-        case 'resumed': return t('history.status.resumed');
-        case 'snoozed': return t('history.status.onbreak');
-        case 'abandoned': return t('history.status.abandoned');
-        default: return t('history.status.onbreak');
-      }
-    })();
-
-    const statusStyle = (() => {
-      switch (item.resumeStatus) {
-        case 'resumed': return [styles.badge, styles.badgeSuccess];
-        case 'snoozed': return [styles.badge, styles.badgeOnBreak];
-        case 'abandoned': return [styles.badge, styles.badgeAbandoned];
-        default: return [styles.badge, styles.badgeOnBreak];
-      }
-    })();
-
     return (
       <View>
         {showMonthHeader && (
@@ -127,36 +108,10 @@ export function HistoryScreen() {
             <Text style={styles.monthText}>{curMonth}</Text>
           </View>
         )}
-        <View style={[styles.card,
-          item.resumeStatus === 'resumed' && styles.cardDone,
-          item.resumeStatus === 'snoozed' && styles.cardSnooze,
-        ]}>
-          <View style={styles.rowSpace}>
-            <Text style={styles.title}>{item.occurredLocal}</Text>
-            <Text style={statusStyle}>{statusLabel}</Text>
-          </View>
-
-          <View style={styles.tagRow}>
-            {item.tagLabels.length === 0 ? (
-              <Text style={styles.tagEmpty}>{t('history.tag.none')}</Text>
-            ) : (
-              item.tagLabels.map((label, idx) => (
-                <View key={idx} style={styles.chip}>
-                  <Text style={styles.chipText}>{label}</Text>
-                </View>
-              ))
-            )}
-          </View>
-
-          <Text style={styles.body}>{t('history.body.reasonPrefix')}: {item.context.reasonText || '-'}</Text>
-          <Text style={styles.body}>{t('history.body.firstStepPrefix')}: {item.context.firstStepText || '-'}</Text>
-          <Text style={styles.meta}>
-            {t('history.body.returnAfterPrefix')}: {item.context.returnAfterMinutes ?? '-'} 分
-          </Text>
-          {item.scheduledLocal && (
-            <Text style={styles.meta}>{t('history.body.scheduledPrefix')}: {item.scheduledLocal}</Text>
-          )}
-        </View>
+        <HistoryItem
+          item={item}
+          isLatest={index===0}
+        />
       </View>
     );
   };
