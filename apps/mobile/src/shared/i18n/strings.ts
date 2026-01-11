@@ -2,6 +2,7 @@ type Lang = 'ja';
 
 type Key =
   | 'common.loading'
+  | 'app.title'
   | 'nav.home'
   | 'nav.history'
   | 'home.card.title'
@@ -44,11 +45,13 @@ type Key =
   | 'duration.unit.second'
   | 'duration.sign.zero'
   | 'duration.sign.plus'
-  | 'duration.sign.minus';
+  | 'duration.sign.minus'
+  | 'toast.save.failed';
 
 const STRINGS: Record<Lang, Record<Key, string>> = {
   ja: {
     'common.loading': '読み込み中...',
+    'app.title': '復帰アシスト',
     'nav.home': 'ダッシュボード',
     'nav.history': '履歴',
     'home.card.title': '最新の作業中断',
@@ -92,6 +95,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'duration.sign.zero': 'ちょうど',
     'duration.sign.plus': '超過',
     'duration.sign.minus': 'あと',
+    'toast.save.failed': '中断の保存に失敗しました。再試行してください。'
   },
 }
 

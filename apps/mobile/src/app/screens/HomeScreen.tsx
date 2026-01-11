@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 function Header({ onPressSettings }: { onPressSettings: () => void }) {
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>再開アシスト</Text>
+      <Text style={styles.headerTitle}>{t('app.title')}</Text>
       <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
         <Ionicons name="settings-outline" size={22} color="#1f2937" />
       </TouchableOpacity>
