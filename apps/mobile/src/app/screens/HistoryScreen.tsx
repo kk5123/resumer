@@ -17,7 +17,7 @@ import { getResumePorts } from '@/features/resume/ports';
 import { useFocusEffect } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
 import { formatLocalShort } from '@/shared/utils/date';
-import { HistoryItem } from '@/features/history';
+import { HistoryCard } from '@/features/history';
 
 type Item = InterruptionEvent & {
   tagLabels: string[];
@@ -108,7 +108,7 @@ export function HistoryScreen() {
             <Text style={styles.monthText}>{curMonth}</Text>
           </View>
         )}
-        <HistoryItem
+        <HistoryCard
           item={item}
           isLatest={index===0}
         />

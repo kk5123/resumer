@@ -1,1 +1,1 @@
-export { HistoryItem } from './components/HistoryItem';
+export { HistoryCard } from './components/HistoryCard';
