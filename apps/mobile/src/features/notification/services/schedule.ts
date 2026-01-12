@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { NotificationId } from '../types';
 
-type ScheduleParams = {
+export type ScheduleParams = {
   title: string;
   body?: string;
   triggerDate: Date;
