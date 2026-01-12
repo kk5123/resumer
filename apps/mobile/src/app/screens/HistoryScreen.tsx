@@ -1,101 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View, } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { getInterruptPorts } from '@/features/interrupt/ports';
-import { InterruptionEvent } from '@/domain/interruption';
-import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
-import { addMinutes } from '@/domain/interruption/factory';
-import { ResumeEvent } from '@/domain/resume/types';
-import { getResumePorts } from '@/features/resume/ports';
-import { useFocusEffect } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
-import { formatLocalShort } from '@/shared/utils/date';
-import { HistoryCard } from '@/features/history';
-
-type Item = InterruptionEvent & {
-  tagLabels: string[];
-  scheduledLocal?: string | null;
-  occurredLocal: string;
-  recordedLocal: string;
-  resumeStatus?: ResumeEvent['status'];
-};
+import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 
 export function HistoryScreen() {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { items, loading } = useHistory({ limit: 50 });
+  const insets = useSafeAreaInsets();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { interruptionRepo, customTriggerTagRepo } = getInterruptPorts();
-      const { resumeRepo } = getResumePorts();
-
-      const [events, customTags] = await Promise.all([
-        interruptionRepo.listRecent(50),            // 取得は新しい順 (実装依存)
-        customTriggerTagRepo.listTopUsed(200),      // ラベル解決用
-      ]);
-
-      const presetMap = new Map(PRESET_TRIGGER_TAGS.map((t) => [t.id, t.label]));
-      const customMap = new Map(customTags.map((t) => [t.id, t.label]));
-
-      // 念のため occurredAt で新しい順にソート
-      const sorted = [...events].sort(
-        (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()
-      );
-
-      const resolved = await Promise.all(
-        sorted.map(async (ev) => {
-          const labels = (ev.context.triggerTagIds ?? []).map((id) => {
-            return presetMap.get(id) ?? customMap.get(id) ?? id;
-          });
-          const occurredLocal = formatLocalShort(ev.occurredAt);
-          const recordedLocal = formatLocalShort(ev.recordedAt);
-          const scheduled =
-            ev.context.returnAfterMinutes != null
-              ? addMinutes(ev.occurredAt, ev.context.returnAfterMinutes)
-              : null;
-          const scheduledLocal = scheduled ? formatLocalShort(scheduled) : null;
-
-          const latestResume = await resumeRepo.findLatestByInterruptionId(ev.id);
-
-          return {
-            ...ev,
-            tagLabels: labels,
-            occurredLocal,
-            recordedLocal,
-            scheduledLocal,
-            resumeStatus: latestResume?.status,
-          };
-        })
-      );
-
-      setItems(resolved);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-      return () => { };
-    }, [load])
-  );
-
-  function monthKey(iso: string) {
+  const monthKey = (iso: string) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
     return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-  }
+  };
 
-  const renderItem = ({ item, index }: { item: Item; index: number }) => {
+  const renderItem = ({ item, index }: { item: HistoryItem; index: number }) => {
     const prev = items[index - 1];
     const curMonth = monthKey(item.occurredAt);
     const prevMonth = prev ? monthKey(prev.occurredAt) : null;
@@ -110,13 +29,12 @@ export function HistoryScreen() {
         )}
         <HistoryCard
           item={item}
-          isLatest={index===0}
+          isLatest={index === 0}
+          // 操作用ハンドラが必要ならここに渡す onResume/onSnooze/onAbandon
         />
       </View>
     );
   };
-
-  const insets = useSafeAreaInsets();
 
   return (
     <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
@@ -126,11 +44,11 @@ export function HistoryScreen() {
         contentInsetAdjustmentBehavior="never"
         contentContainerStyle={[
           styles.listContent,
-          { paddingTop: insets.top },            // top を手動で1回だけ足す
+          { paddingTop: insets.top },
         ]}
         renderItem={renderItem}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={load} />
+          <RefreshControl refreshing={loading} onRefresh={() => { /* useHistory は自動更新なので不要なら空で */ }} />
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
