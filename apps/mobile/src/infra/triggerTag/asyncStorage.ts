@@ -57,6 +57,12 @@ export class AsyncStorageCustomTriggerTagRepository
       .slice(0, limit);
   }
 
+  public async findById(id: TriggerTagId): Promise<CustomTriggerTag | null> {
+    const map = await this.loadAll();
+    const hit = map[id as unknown as string];
+    return hit ?? null;
+  }
+
   /* ========================
    * private helpers
    * ======================== */
