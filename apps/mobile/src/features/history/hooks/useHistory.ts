@@ -57,5 +57,5 @@ export function useHistory(options: Options = {}) {
     }, [reload])
   );
 
-  return { items, loading, error };
+  return { items, loading, error, reload };
 }
