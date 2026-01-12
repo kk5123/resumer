@@ -2,7 +2,7 @@ type Lang = 'ja';
 
 type Key =
   | 'common.loading'
-  | 'common.showAll'
+  | 'common.showHistory'
   | 'app.title'
   | 'nav.home'
   | 'nav.history'
@@ -52,7 +52,7 @@ type Key =
 const STRINGS: Record<Lang, Record<Key, string>> = {
   ja: {
     'common.loading': '読み込み中...',
-    'common.showAll': 'すべて見る',
+    'common.showHistory': '履歴を見る',
     'app.title': '復帰アシスト',
     'nav.home': 'ダッシュボード',
     'nav.history': '履歴',

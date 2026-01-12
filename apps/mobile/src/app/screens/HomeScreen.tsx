@@ -9,15 +9,25 @@ import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
 import { t } from '@/shared/i18n/strings';
 import { formatDiffHuman } from '@/shared/utils/date';
 import { useInterruptionActions } from '@/shared/actions/useInterruptionActions';
-import { useHistory, HistoryCard } from '@/features/history';
+import { useHistory } from '@/features/history';
 
-function Header({ onPressSettings }: { onPressSettings: () => void }) {
+type HeaderActions = {
+  onPressHistory: () => void;
+  onPressSettings: () => void;
+}
+
+function Header({ onPressHistory, onPressSettings }: HeaderActions) {
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>{t('app.title')}</Text>
-      <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
-        <Ionicons name="settings-outline" size={22} color="#1f2937" />
-      </TouchableOpacity>
+      <View style={styles.headerActions}>
+        <TouchableOpacity onPress={onPressHistory} style={styles.headerButton} hitSlop={8}>
+          <Ionicons name="time-outline" size={22} color="#1f2937" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
+          <Ionicons name="settings-outline" size={22} color="#1f2937" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -29,9 +39,11 @@ export default function HomeScreen() {
 
   const [visible, setVisible] = useState(false);
 
-  // 履歴（最新含む）をまとめて取得
-  const { items: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 3 });
+  // 履歴を取得（ホームは最新1件のみ表示対象）
+  const { items: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
   const latest = historyItems[0] ?? null;
+  const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
+  const hasAnyHistory = historyItems.length > 0;
 
   const { markResumed, markSnoozed, markAbandoned } = useInterruptionActions();
 
@@ -43,34 +55,37 @@ export default function HomeScreen() {
   }, []);
 
   const resumeDiff = useMemo(() => {
-    if (!latest?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
-    const scheduled = new Date(latest.scheduledResumeAt).getTime();
+    if (!latestOpen?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
+    const scheduled = new Date(latestOpen.scheduledResumeAt).getTime();
     if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
     const diffMs = now - scheduled;
     return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
-  }, [latest?.scheduledResumeAt, now]);
+  }, [latestOpen?.scheduledResumeAt, now]);
 
   const handleResume = async () => {
-    if (!latest) return;
-    await markResumed(latest.id);
+    if (!latestOpen) return;
+    await markResumed(latestOpen.id);
     await reloadHistory();
   };
 
   const handleSnooze5 = async () => {
-    if (!latest) return;
-    await markSnoozed(latest.id, 5);
+    if (!latestOpen) return;
+    await markSnoozed(latestOpen.id, 5);
     await reloadHistory();
   };
 
   const handleAbandon = async () => {
-    if (!latest) return;
-    await markAbandoned(latest.id);
+    if (!latestOpen) return;
+    await markAbandoned(latestOpen.id);
     await reloadHistory();
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <Header onPressSettings={() => { }} />
+      <Header
+        onPressHistory={() => navigation.navigate('History')}
+        onPressSettings={() => { }}
+      />
 
       <InterruptButton onPress={() => setVisible((v) => !v)} />
       {visible && (
@@ -81,31 +96,49 @@ export default function HomeScreen() {
         />
       )}
 
-      <ScrollView style={styles.recentSection}>
-        <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionHeader}>{t('nav.history')}（最新3件）</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('History')}>
-            <Text style={styles.sectionLink}>{t('common.showAll')}</Text>
-          </TouchableOpacity>
-        </View>
-        {historyItems.map((it, idx) => (
-          <HistoryCard
-            key={it.id}
-            item={it}
-            isLatest={idx === 0}
-            onResume={handleResume}
-            onSnooze={handleSnooze5}
-            onAbandon={handleAbandon}
-          />
-        ))}
-        {historyItems.length === 0 && !historyLoading && (
-          <Text style={styles.recentEmpty}>{t('history.empty')}</Text>
-        )}
-      </ScrollView>
+      {latestOpen && (
+        <ScrollView style={styles.recentSection}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeader}>再開待ちの作業があります</Text>
+          </View>
+          <View style={styles.latestCard}>
+            <View style={styles.rowSpace}>
+              <Text style={styles.cardTitle}>{t('home.label.scheduled')}: {latestOpen.scheduledLocal}</Text>
+              <Text style={[styles.labelEmphasis, resumeDiff.isLate && styles.labelLate]}>
+                {resumeDiff.text}
+              </Text>
+            </View>
 
-      {!historyLoading && !latest && (
-        <Text style={styles.empty}>{t('home.empty')}</Text>
+            <Text style={styles.subLabel}>中断時刻: {latestOpen.occurredLocal ?? t('home.card.title')}</Text>
+
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>{t('history.body.reasonPrefix')}</Text>
+              <Text style={styles.metaValue}>{latestOpen.context.reasonText || '-'}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>{t('history.body.firstStepPrefix')}</Text>
+              <Text style={styles.metaValue}>{latestOpen.context.firstStepText || '-'}</Text>
+            </View>
+
+            <View style={styles.actions}>
+              <TouchableOpacity style={styles.primary} onPress={handleResume}>
+                <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondary} onPress={handleSnooze5}>
+                <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.danger} onPress={handleAbandon}>
+                <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
       )}
+
+      {!latestOpen && !historyLoading && !hasAnyHistory && (
+        <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
+      )}
+
     </SafeAreaView>
   );
 }
@@ -120,6 +153,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerButton: { paddingHorizontal: 6 },
   container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
@@ -127,6 +161,7 @@ const styles = StyleSheet.create({
   label: { fontSize: 13, color: '#1f2937' },
   labelEmphasis: { fontSize: 14, fontWeight: '700', color: '#111' },
   labelLate: { color: '#b91c1c' },
+  subLabel: { fontSize: 12, color: '#4b5563', marginBottom: 4 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   primary: { flex: 1, backgroundColor: '#2563eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   primaryText: { color: '#fff', fontWeight: '700' },
@@ -152,5 +187,51 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  sectionLinkBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 4 },
   sectionLink: { fontSize: 13, color: '#2563eb', fontWeight: '700' },
+  resumeRow: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+    marginBottom: 8,
+  },
+  historyButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+  },
+  historyButtonText: { fontSize: 14, fontWeight: '700', color: '#2563eb' },
+  latestCard: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  badge: {
+    fontSize: 11,
+    color: '#1f2937',
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  metaLabel: { fontSize: 12, color: '#6b7280' },
+  metaValue: { flex: 1, fontSize: 13, color: '#111', textAlign: 'right' },
 });
