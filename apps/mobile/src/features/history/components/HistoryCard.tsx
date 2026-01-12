@@ -19,16 +19,21 @@ export function HistoryCard({
   onSnooze,
   onAbandon,
 }: Props) {
-  const statusLabel = (() => {
+  const { statusLabel, statusStyle } = (() => {
     switch (item.resumeStatus) {
-      case 'resumed': return t('history.status.resumed');
-      case 'snoozed': return t('history.status.onbreak');
-      case 'abandoned': return t('history.status.abandoned');
-      default: return t('history.status.onbreak');
+      case 'resumed':
+        return { statusLabel: t('history.status.resumed'), statusStyle: styles.badgeSuccess };
+      case 'snoozed':
+        return { statusLabel: t('history.status.onbreak'), statusStyle: styles.badgeOnBreak };
+      case 'abandoned':
+        return { statusLabel: t('history.status.abandoned'), statusStyle: styles.badgeAbandoned };
+      default:
+        return { statusLabel: t('history.status.onbreak'), statusStyle: styles.badgeOnBreak };
     }
   })();
 
   const isClosable = item.resumeStatus !== 'abandoned' && item.resumeStatus !== 'resumed';
+  const triggerTags = item.context.triggerTagIds ?? [];
 
   return (
     <View style={[
@@ -38,7 +43,7 @@ export function HistoryCard({
     ]}>
       <View style={styles.rowSpace}>
         <Text style={styles.title}>{item.occurredLocal}</Text>
-        <Text style={styles.badge}>{statusLabel}</Text>
+        <Text style={[styles.badge, statusStyle]}>{statusLabel}</Text>
       </View>
 
       <Text style={styles.meta}>
@@ -54,6 +59,17 @@ export function HistoryCard({
         <Text style={styles.meta}>
           {t('history.body.scheduledPrefix')}: {item.scheduledLocal}
         </Text>
+      )}
+      {triggerTags.length > 0 ? (
+        <View style={styles.tagRow}>
+          {triggerTags.map((tag) => (
+            <View key={tag} style={styles.chip}>
+              <Text style={styles.chipText}>{tag}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={[styles.meta, styles.tagEmpty]}>{t('history.tag.none')}</Text>
       )}
 
       {isLatest && isClosable && (
@@ -81,7 +97,21 @@ const styles = StyleSheet.create({
   rowSpace: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 15, fontWeight: '700', color: '#111' },
   badge: { fontSize: 10, color: '#1f2937', backgroundColor: '#e5e7eb', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  badgeSuccess: { backgroundColor: '#dcfce7', color: '#15803d' },
+  badgeOnBreak: { backgroundColor: '#fef9c3', color: '#92400e' },
+  badgeAbandoned: { backgroundColor: '#fee2e2', color: '#b91c1c' },
   meta: { fontSize: 12, color: '#6b7280' },
+  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  chip: {
+    backgroundColor: '#e8f2ff',
+    borderColor: '#c7dbff',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  chipText: { fontSize: 12, color: '#1f4fa0', fontWeight: '600' },
+  tagEmpty: { fontSize: 12, color: '#9ca3af' },
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   primary: { flex: 1, backgroundColor: '#2563eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   primaryText: { color: '#fff', fontWeight: '700' },
