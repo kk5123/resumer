@@ -13,6 +13,9 @@ import { useHistory } from '@/features/history';
 
 import { SummaryCard, useTodaySummary } from '@/features/summary';
 
+import { upsertResumeNotification } from '@/features/notification';
+import { InterruptionEvent } from '@/domain/interruption';
+
 type HeaderActions = {
   onPressHistory: () => void;
   onPressSettings: () => void;
@@ -82,6 +85,19 @@ export default function HomeScreen() {
     return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
   }, [latestOpen?.scheduledResumeAt, now]);
 
+  const handleInterruptionSaved = async (e: InterruptionEvent) => {
+    await reloadHistory();
+    setVisible(false);
+
+    if (e.scheduledResumeAt)
+      upsertResumeNotification({
+        interruptionId: e.id,
+        title: t('app.title'),
+        body: e.context.firstStepText,
+        triggerDate: new Date(e.scheduledResumeAt)
+      });
+  };
+
   const handleResume = async () => {
     if (!latestOpen) return;
     await markResumed(latestOpen.id);
@@ -114,7 +130,7 @@ export default function HomeScreen() {
         <InterruptCaptureModal
           visible={visible}
           onCancel={() => setVisible(false)}
-          onSave={async () => { await reloadHistory(); setVisible(false); }}
+          onSave={handleInterruptionSaved}
         />
       )}
 

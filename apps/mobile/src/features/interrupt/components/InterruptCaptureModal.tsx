@@ -16,14 +16,16 @@ import { TriggerTagPicker, TriggerTagPickerHandle } from './TriggerTagPicker';
 import { TriggerTag } from '@/domain/triggerTag';
 import { useEffect, useRef } from 'react';
 import { getInterruptPorts } from '../ports';
-import { createInterruptionEvent } from '@/domain/interruption';
+import { createInterruptionEvent, InterruptionEvent } from '@/domain/interruption';
 import { t } from '@/shared/i18n/strings';
 import { useToast } from '@/shared/components/ToastProvider';
+
+import { InterruptionId } from '@/domain/common.types';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
   onCancel: () => void;
-  onSave: () => void;
+  onSave: (e: InterruptionEvent) => void;
 };
 
 export type InterruptionDraft = {
@@ -121,7 +123,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
       })
 
       await interruptionRepo.save(event);
-      onSave();
+      onSave(event);
       console.log('[InterruptionCaptureModal] saved', event.id);
     } catch (e) {
       console.error('[InterruptionCaptureModal] save error', e);
