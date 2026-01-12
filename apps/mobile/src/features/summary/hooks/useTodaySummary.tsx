@@ -69,7 +69,7 @@ export function useTodaySummary(limit = 200) {
     (async () => {
       if (!frequentTrigger) { setFrequentLabel('-'); return; }
       const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
-      if (mounted) setFrequentLabel(label);
+      if (mounted) setFrequentLabel(`${label}     ${frequentTrigger.count}`);
     })();
     return () => { mounted = false; };
   }, [frequentTrigger]);
