@@ -6,6 +6,7 @@ type SummaryProps = {
   resumed: number;               // 再開済
   abandoned: number;             // 終了
   snoozed: number;               // 延長
+  frequentTrigger: string;
 };
 
 export function SummaryCard({
@@ -14,6 +15,7 @@ export function SummaryCard({
   resumed,
   abandoned,
   snoozed,
+  frequentTrigger
 }: SummaryProps) {
   return (
     <View style={styles.card}>
@@ -34,6 +36,10 @@ export function SummaryCard({
       <View style={styles.row}>
         <Text style={styles.label}>延長</Text>
         <Text style={styles.value}>{snoozed}</Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.label}>最も多いきっかけ</Text>
+        <Text style={styles.value}>{frequentTrigger}</Text>
       </View>
     </View>
   );

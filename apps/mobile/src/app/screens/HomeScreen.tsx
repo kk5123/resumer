@@ -47,6 +47,7 @@ function SummaryCardContainer() {
       resumed={summary.resumed}
       abandoned={summary.abandoned}
       snoozed={summary.snoozed}
+      frequentTrigger={summary.frequentTrigger}
     />
   );
 }

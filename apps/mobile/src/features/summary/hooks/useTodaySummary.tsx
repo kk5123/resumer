@@ -1,6 +1,25 @@
 // useTodaySummary.ts
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from '@/features/history';
+import { TriggerTagId } from '@/domain/common.types';
+import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
+import { getInterruptPorts } from '@/features/interrupt/ports';
+
+export type FrequentTrigger = { tagId: TriggerTagId; count: number };
+
+async function labelFor(id: TriggerTagId): Promise<string> {
+  const preset = PRESET_TRIGGER_TAGS.find(t => t.id === id);
+  if (preset) return preset.label;
+
+  const { customTriggerTagRepo } = getInterruptPorts();
+
+  const tag = await customTriggerTagRepo.findById(id);
+  if (!tag) {
+    throw new Error('');
+  }
+
+  return tag.label;
+}
 
 export function useTodaySummary(limit = 200) {
   const startOfToday = useMemo(() => {
@@ -10,11 +29,50 @@ export function useTodaySummary(limit = 200) {
   }, []);
 
   const { items, loading, error, reload } = useHistory({ limit });
+  const [frequentLabel, setFrequentLabel] = useState<string>('-');
 
   const todayItems = useMemo(
     () => items.filter((it) => new Date(it.occurredAt).getTime() >= startOfToday),
     [items, startOfToday]
   );
+
+  const frequentTrigger = useMemo<FrequentTrigger | null>(() => {
+    const stats = new Map<string, { count: number; lastUsedAt: number }>();
+  
+    for (const it of todayItems) {
+      const lastUsedAt = new Date(it.occurredAt).getTime();
+      (it.context.triggerTagIds ?? []).forEach((tagId) => {
+        const key = tagId as string;
+        const prev = stats.get(key);
+        if (!prev) {
+          stats.set(key, { count: 1, lastUsedAt });
+        } else {
+          stats.set(key, {
+            count: prev.count + 1,
+            lastUsedAt: Math.max(prev.lastUsedAt, lastUsedAt),
+          });
+        }
+      });
+    }
+  
+    if (stats.size === 0) return null;
+  
+    const best = Array.from(stats.entries())
+      .map(([tagId, v]) => ({ tagId: tagId as TriggerTagId, count: v.count, lastUsedAt: v.lastUsedAt }))
+      .sort((a, b) => (b.count !== a.count ? b.count - a.count : b.lastUsedAt - a.lastUsedAt))[0];
+  
+    return { tagId: best.tagId, count: best.count };
+  }, [todayItems]);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!frequentTrigger) { setFrequentLabel('-'); return; }
+      const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
+      if (mounted) setFrequentLabel(label);
+    })();
+    return () => { mounted = false; };
+  }, [frequentTrigger]);
 
   const summary = useMemo(() => {
     const resumed = todayItems.filter((it) => it.resumeStatus === 'resumed').length;
@@ -25,8 +83,9 @@ export function useTodaySummary(limit = 200) {
       resumed,
       abandoned,
       snoozed,
+      frequentTrigger: frequentLabel,
     };
-  }, [todayItems]);
+  }, [todayItems, frequentLabel]);
 
   return { summary, loading, error, reload, items: todayItems };
 }
