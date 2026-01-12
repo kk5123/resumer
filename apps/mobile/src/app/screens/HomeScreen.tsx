@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
 import { t } from '@/shared/i18n/strings';
@@ -20,7 +22,11 @@ function Header({ onPressSettings }: { onPressSettings: () => void }) {
   );
 }
 
+type RootStackParamList = { Home: undefined; History: undefined };
+
 export default function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
   const [visible, setVisible] = useState(false);
 
   // 履歴（最新含む）をまとめて取得
@@ -76,7 +82,12 @@ export default function HomeScreen() {
       )}
 
       <ScrollView style={styles.recentSection}>
-        <Text style={styles.sectionHeader}>{t('nav.history')}（最新3件）</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeader}>{t('nav.history')}（最新3件）</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('History')}>
+            <Text style={styles.sectionLink}>{t('common.showAll')}</Text>
+          </TouchableOpacity>
+        </View>
         {historyItems.map((it, idx) => (
           <HistoryCard
             key={it.id}
@@ -140,4 +151,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  sectionLink: { fontSize: 13, color: '#2563eb', fontWeight: '700' },
 });

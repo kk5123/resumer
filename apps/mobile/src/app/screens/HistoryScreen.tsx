@@ -1,10 +1,14 @@
-import { FlatList, RefreshControl, StyleSheet, Text, View, } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
 import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
+import { Ionicons } from '@expo/vector-icons';
 
 export function HistoryScreen() {
+  const navigation = useNavigation();
+
   const { items, loading } = useHistory({ limit: 50 });
   const insets = useSafeAreaInsets();
 
@@ -37,16 +41,18 @@ export function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#2563eb" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('nav.history')}</Text>
+      </View>
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        contentInsetAdjustmentBehavior="never"
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingTop: insets.top },
-        ]}
         renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={() => { /* useHistory は自動更新なので不要なら空で */ }} />
         }
@@ -62,7 +68,34 @@ export function HistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
-  listContent: { padding: 12, gap: 10, },
+  header: {
+    position: 'relative',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    minHeight: 56,            // ヘッダー高さを安定させる
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // タイトル中央
+    backgroundColor: '#f7f9fc',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,                 // 左端寄せ
+    height: 40,
+    width: 40,
+    justifyContent: 'center', // アイコン縦中央
+    alignItems: 'flex-start', // 左寄せ
+    paddingVertical: 0,
+    paddingRight: 0,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111',
+    textAlign: 'center',
+  },
+  listContent: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 16, gap: 10 },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
