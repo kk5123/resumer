@@ -11,6 +11,8 @@ import { formatDiffHuman } from '@/shared/utils/date';
 import { useInterruptionActions } from '@/shared/actions/useInterruptionActions';
 import { useHistory } from '@/features/history';
 
+import { SummaryCard, useTodaySummary } from '@/features/summary';
+
 type HeaderActions = {
   onPressHistory: () => void;
   onPressSettings: () => void;
@@ -29,6 +31,24 @@ function Header({ onPressHistory, onPressSettings }: HeaderActions) {
         </TouchableOpacity>
       </View>
     </View>
+  );
+}
+
+function SummaryCardContainer() {
+  const { summary, loading } = useTodaySummary(200);
+
+  if (loading)
+    return null;
+
+  return (
+    <SummaryCard
+      dateLabel="今日"
+      total={summary.total}
+      resumed={summary.resumed}
+      abandoned={summary.abandoned}
+      snoozed={summary.snoozed}
+      frequentTrigger={summary.frequentTrigger}
+    />
   );
 }
 
@@ -86,6 +106,8 @@ export default function HomeScreen() {
         onPressHistory={() => navigation.navigate('History')}
         onPressSettings={() => { }}
       />
+
+      <SummaryCardContainer />
 
       <InterruptButton onPress={() => setVisible((v) => !v)} />
       {visible && (
