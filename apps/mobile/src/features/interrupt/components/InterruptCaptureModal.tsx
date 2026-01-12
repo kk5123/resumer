@@ -17,6 +17,8 @@ import { TriggerTag } from '@/domain/triggerTag';
 import { useEffect, useRef } from 'react';
 import { getInterruptPorts } from '../ports';
 import { createInterruptionEvent } from '@/domain/interruption';
+import { t } from '@/shared/i18n/strings';
+import { useToast } from '@/shared/components/ToastProvider';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -43,6 +45,8 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const [occurredAt, setOccurredAt] = useState<string | null>(null);
 
   const tagPickerRef = useRef<TriggerTagPickerHandle | null>(null);
+
+  const { showToast } = useToast();
 
   useEffect(() => {
     let mounted = true;
@@ -121,6 +125,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
       console.log('[InterruptionCaptureModal] saved', event.id);
     } catch (e) {
       console.error('[InterruptionCaptureModal] save error', e);
+      showToast(t('toast.save.failed'));
     }
   };
 
@@ -141,18 +146,18 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
             <Pressable onPress={handleCancel} hitSlop={12}>
               <Text style={styles.headerClose}>×</Text>
             </Pressable>
-            <Text style={styles.headerTitle}>中断</Text>
+            <Text style={styles.headerTitle}>{t('interruptModal.header')}</Text>
             <View style={{ width: 28 }} />
           </View>
 
           <ScrollView style={styles.body} keyboardShouldPersistTaps='handled'>
-            <Text style={styles.sectionTitle}>きっかけ</Text>
+            <Text style={styles.sectionTitle}>{t('interruptModal.section.trigger')}</Text>
             <TriggerTagPicker
               ref={tagPickerRef}
               initialCustomTags={initialCustomTags}
             />
 
-            <Text style={styles.caption}>理由メモ</Text>
+            <Text style={styles.caption}>{t('interruptModal.caption.reason')}</Text>
             <TextInput
               value={draft.reasonText}
               onChangeText={(t) => setDraft((d) => ({ ...d, reasonText: t }))}
@@ -161,7 +166,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
               returnKeyType="done"
             />
 
-            <Text style={styles.caption}>戻ったら最初にやること</Text>
+            <Text style={styles.caption}>{t('interruptModal.caption.firstStep')}</Text>
             <TextInput
               value={draft.firstStepText}
               onChangeText={(t) => setDraft((d) => ({ ...d, firstStepText: t }))}
@@ -170,7 +175,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
               returnKeyType="done"
             />
 
-            <Text style={styles.sectionTitle}>何分後に戻れそう？</Text>
+            <Text style={styles.sectionTitle}>{t('interruptModal.section.returnAfter')}</Text>
 
             <View style={[styles.row, { alignItems: "center" }]}>
               <Pressable
@@ -187,7 +192,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
               <View style={styles.minutesBox}>
                 <Text style={styles.minutesValue}>{draft.returnAfterMinutes}</Text>
-                <Text style={styles.minutesLabel}>分</Text>
+                <Text style={styles.minutesLabel}>{t('interruptModal.unit.minute')}</Text>
               </View>
               <Pressable
                 onPress={() =>
@@ -221,7 +226,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
               onPress={handleSave}
               style={[styles.footerButton, styles.footerPrimary]}
             >
-              <Text style={styles.footerPrimaryText}>休憩する</Text>
+              <Text style={styles.footerPrimaryText}>{t('interruptModal.action.save')}</Text>
             </Pressable>
           </View>
         </SafeAreaView>

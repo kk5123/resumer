@@ -1,111 +1,237 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { InterruptButton, InterruptCaptureModal } from '../../features/interrupt';
-import { getInterruptPorts } from '@/features/interrupt/ports';
-import { getResumePorts } from '@/features/resume/ports';
-import { createResumeEvent } from '@/domain/resume/factory';
-import { InterruptionEvent } from '@/domain/interruption';
-import { ResumeEvent } from '@/domain/resume/types';
+import { useEffect, useMemo, useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-export default function HomeScreen() {
-  const [visible, setVisible] = useState(false);
-  const [latest, setLatest] = useState<InterruptionEvent | null>(null);
-  const [latestResume, setLatestResume] = useState<ResumeEvent | null>(null);
-  const [loading, setLoading] = useState(false);
+import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
+import { t } from '@/shared/i18n/strings';
+import { formatDiffHuman } from '@/shared/utils/date';
+import { useInterruptionActions } from '@/shared/actions/useInterruptionActions';
+import { useHistory } from '@/features/history';
 
-  const { interruptionRepo } = getInterruptPorts();
-  const { resumeRepo } = getResumePorts();
+type HeaderActions = {
+  onPressHistory: () => void;
+  onPressSettings: () => void;
+}
 
-  const loadLatest = useCallback(async () => {
-    setLoading(true);
-    try {
-      const ev = await interruptionRepo.findLatest();
-      setLatest(ev);
-      if (ev) {
-        const r = await resumeRepo.findLatestByInterruptionId(ev.id);
-        setLatestResume(r);
-      } else {
-        setLatestResume(null);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [interruptionRepo, resumeRepo]);
-
-  useEffect(() => {
-    loadLatest();
-  }, [loadLatest]);
-
-  const shouldShowCard = useMemo(() => {
-    if (!latest) return false;
-    if (!latestResume) return true; // 復帰記録なし -> 表示
-    return latestResume.status !== 'resumed'; // 復帰済みなら非表示
-  }, [latest, latestResume]);
-
-  const formattedOccurred = useMemo(() => {
-    if (!latest) return '';
-    const d = new Date(latest.occurredAt);
-    return Number.isNaN(d.getTime()) ? latest.occurredAt : d.toLocaleString('ja-JP');
-  }, [latest]);
-
-  const handleResume = async () => {
-    if (!latest) return;
-    const event = createResumeEvent({ interruptionId: latest.id, status: 'resumed' });
-    await resumeRepo.save(event);
-    setLatestResume(event); // 即時反映
-  };
-
-  const handleSnooze5 = async () => {
-    if (!latest) return;
-    const event = createResumeEvent({ interruptionId: latest.id, status: 'snoozed', snoozeMinutes: 5 });
-    await resumeRepo.save(event);
-    setLatestResume(event);
-  };
-
+function Header({ onPressHistory, onPressSettings }: HeaderActions) {
   return (
-    <View style={styles.container}>
-      <InterruptButton onPress={() => setVisible((v) => !v)} />
-      <InterruptCaptureModal
-        visible={visible}
-        onCancel={() => setVisible(false)}
-        onSave={async () => { await loadLatest(); setVisible(false); }}
-      />
-
-      {shouldShowCard && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>直近の中断</Text>
-          {loading && <ActivityIndicator />}
-          {!loading && latest && (
-            <>
-              <Text style={styles.label}>発生: {formattedOccurred}</Text>
-              <Text style={styles.label}>
-                予定復帰: {latest.scheduledResumeAt ? new Date(latest.scheduledResumeAt).toLocaleString('ja-JP') : '未設定'}
-              </Text>
-              <View style={styles.actions}>
-                <TouchableOpacity style={styles.primary} onPress={handleResume}>
-                  <Text style={styles.primaryText}>復帰する</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.secondary} onPress={handleSnooze5}>
-                  <Text style={styles.secondaryText}>あと5分</Text>
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </View>
-      )}
+    <View style={styles.header}>
+      <Text style={styles.headerTitle}>{t('app.title')}</Text>
+      <View style={styles.headerActions}>
+        <TouchableOpacity onPress={onPressHistory} style={styles.headerButton} hitSlop={8}>
+          <Ionicons name="time-outline" size={22} color="#1f2937" />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
+          <Ionicons name="settings-outline" size={22} color="#1f2937" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
 
+type RootStackParamList = { Home: undefined; History: undefined };
+
+export default function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  const [visible, setVisible] = useState(false);
+
+  // 履歴を取得（ホームは最新1件のみ表示対象）
+  const { items: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
+  const latest = historyItems[0] ?? null;
+  const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
+  const hasAnyHistory = historyItems.length > 0;
+
+  const { markResumed, markSnoozed, markAbandoned } = useInterruptionActions();
+
+  // 差分表示用に現在時刻を更新（1秒ごと）
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const tId = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tId);
+  }, []);
+
+  const resumeDiff = useMemo(() => {
+    if (!latestOpen?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
+    const scheduled = new Date(latestOpen.scheduledResumeAt).getTime();
+    if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
+    const diffMs = now - scheduled;
+    return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
+  }, [latestOpen?.scheduledResumeAt, now]);
+
+  const handleResume = async () => {
+    if (!latestOpen) return;
+    await markResumed(latestOpen.id);
+    await reloadHistory();
+  };
+
+  const handleSnooze5 = async () => {
+    if (!latestOpen) return;
+    await markSnoozed(latestOpen.id, 5);
+    await reloadHistory();
+  };
+
+  const handleAbandon = async () => {
+    if (!latestOpen) return;
+    await markAbandoned(latestOpen.id);
+    await reloadHistory();
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <Header
+        onPressHistory={() => navigation.navigate('History')}
+        onPressSettings={() => { }}
+      />
+
+      <InterruptButton onPress={() => setVisible((v) => !v)} />
+      {visible && (
+        <InterruptCaptureModal
+          visible={visible}
+          onCancel={() => setVisible(false)}
+          onSave={async () => { await reloadHistory(); setVisible(false); }}
+        />
+      )}
+
+      {latestOpen && (
+        <ScrollView style={styles.recentSection}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeader}>再開待ちの作業があります</Text>
+          </View>
+          <View style={styles.latestCard}>
+            <View style={styles.rowSpace}>
+              <Text style={styles.cardTitle}>{t('home.label.scheduled')}: {latestOpen.scheduledLocal}</Text>
+              <Text style={[styles.labelEmphasis, resumeDiff.isLate && styles.labelLate]}>
+                {resumeDiff.text}
+              </Text>
+            </View>
+
+            <Text style={styles.subLabel}>中断時刻: {latestOpen.occurredLocal ?? t('home.card.title')}</Text>
+
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>{t('history.body.reasonPrefix')}</Text>
+              <Text style={styles.metaValue}>{latestOpen.context.reasonText || '-'}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>{t('history.body.firstStepPrefix')}</Text>
+              <Text style={styles.metaValue}>{latestOpen.context.firstStepText || '-'}</Text>
+            </View>
+
+            <View style={styles.actions}>
+              <TouchableOpacity style={styles.primary} onPress={handleResume}>
+                <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.secondary} onPress={handleSnooze5}>
+                <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.danger} onPress={handleAbandon}>
+                <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      )}
+
+      {!latestOpen && !historyLoading && !hasAnyHistory && (
+        <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
+      )}
+
+    </SafeAreaView>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', padding: 16 },
+  header: {
+    height: 56,
+    width: '100%',
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerButton: { paddingHorizontal: 6 },
+  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   label: { fontSize: 13, color: '#1f2937' },
-  muted: { fontSize: 13, color: '#9ca3af' },
+  labelEmphasis: { fontSize: 14, fontWeight: '700', color: '#111' },
+  labelLate: { color: '#b91c1c' },
+  subLabel: { fontSize: 12, color: '#4b5563', marginBottom: 4 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 8 },
   primary: { flex: 1, backgroundColor: '#2563eb', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   primaryText: { color: '#fff', fontWeight: '700' },
   secondary: { flex: 1, borderWidth: 1, borderColor: '#d1d5db', paddingVertical: 10, borderRadius: 8, alignItems: 'center' },
   secondaryText: { color: '#374151', fontWeight: '700' },
+  danger: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    backgroundColor: '#fef2f2',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  dangerText: { color: '#b91c1c', fontWeight: '700' },
+  recentSection: { width: '100%', marginTop: 16 },
+  sectionHeader: { fontSize: 15, fontWeight: '700', color: '#111', marginBottom: 8 },
+  recentEmpty: { fontSize: 12, color: '#9ca3af', textAlign: 'center', paddingVertical: 8 },
+  empty: { marginTop: 16, color: '#6b7280', textAlign: 'center', fontSize: 14 },
+  rowSpace: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  sectionLinkBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 4 },
+  sectionLink: { fontSize: 13, color: '#2563eb', fontWeight: '700' },
+  resumeRow: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 12,
+    gap: 4,
+    marginBottom: 8,
+  },
+  historyButton: {
+    marginTop: 8,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    alignItems: 'center',
+    backgroundColor: '#f8fafc',
+  },
+  historyButtonText: { fontSize: 14, fontWeight: '700', color: '#2563eb' },
+  latestCard: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 14,
+    gap: 10,
+  },
+  badge: {
+    fontSize: 11,
+    color: '#1f2937',
+    backgroundColor: '#e5e7eb',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  metaLabel: { fontSize: 12, color: '#6b7280' },
+  metaValue: { flex: 1, fontSize: 13, color: '#111', textAlign: 'right' },
 });

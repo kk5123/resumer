@@ -1,135 +1,28 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { FlatList, RefreshControl, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 
-import { getInterruptPorts } from '@/features/interrupt/ports';
-import { InterruptionEvent } from '@/domain/interruption';
-import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
-import { addMinutes } from '@/domain/interruption/factory';
-import { ResumeEvent } from '@/domain/resume/types';
-import { getResumePorts } from '@/features/resume/ports';
-import { useFocusEffect } from '@react-navigation/native';
-
-type Item = InterruptionEvent & {
-  tagLabels: string[];
-  scheduledLocal?: string | null;
-  occurredLocal: string;
-  recordedLocal: string;
-  resumeStatus?: ResumeEvent['status'];
-};
-
-function formatLocalShort(iso: string) {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return new Intl.DateTimeFormat('ja-JP', {
-    month: 'numeric',   // 3
-    day: 'numeric',     // 12
-    weekday: 'short',   // (火)
-    hour: '2-digit',    // 14
-    minute: '2-digit',  // 05
-    hourCycle: 'h23',   // 24時間表記
-  }).format(d);
-}
+import { t } from '@/shared/i18n/strings';
+import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
+import { Ionicons } from '@expo/vector-icons';
 
 export function HistoryScreen() {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
+  const navigation = useNavigation();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { interruptionRepo, customTriggerTagRepo } = getInterruptPorts();
-      const { resumeRepo } = getResumePorts();
+  const { items, loading } = useHistory({ limit: 50 });
+  const insets = useSafeAreaInsets();
 
-      const [events, customTags] = await Promise.all([
-        interruptionRepo.listRecent(50),            // 取得は新しい順 (実装依存)
-        customTriggerTagRepo.listTopUsed(200),      // ラベル解決用
-      ]);
-
-      const presetMap = new Map(PRESET_TRIGGER_TAGS.map((t) => [t.id, t.label]));
-      const customMap = new Map(customTags.map((t) => [t.id, t.label]));
-
-      // 念のため occurredAt で新しい順にソート
-      const sorted = [...events].sort(
-        (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime()
-      );
-
-      const resolved = await Promise.all(
-        sorted.map(async (ev) => {
-          const labels = (ev.context.triggerTagIds ?? []).map((id) => {
-            return presetMap.get(id) ?? customMap.get(id) ?? id;
-          });
-          const occurredLocal = formatLocalShort(ev.occurredAt);
-          const recordedLocal = formatLocalShort(ev.recordedAt);
-          const scheduled =
-            ev.context.returnAfterMinutes != null
-              ? addMinutes(ev.occurredAt, ev.context.returnAfterMinutes)
-              : null;
-          const scheduledLocal = scheduled ? formatLocalShort(scheduled) : null;
-
-          const latestResume = await resumeRepo.findLatestByInterruptionId(ev.id);
-
-          return {
-            ...ev,
-            tagLabels: labels,
-            occurredLocal,
-            recordedLocal,
-            scheduledLocal,
-            resumeStatus: latestResume?.status,
-          };
-        })
-      );
-
-      setItems(resolved);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      load();
-      return () => { };
-    }, [load])
-  );
-
-  function monthKey(iso: string) {
+  const monthKey = (iso: string) => {
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return iso;
     return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}`;
-  }
+  };
 
-  const renderItem = ({ item, index }: { item: Item; index: number }) => {
+  const renderItem = ({ item, index }: { item: HistoryItem; index: number }) => {
     const prev = items[index - 1];
     const curMonth = monthKey(item.occurredAt);
     const prevMonth = prev ? monthKey(prev.occurredAt) : null;
     const showMonthHeader = index === 0 || curMonth !== prevMonth;
-
-    const tags = item.tagLabels ?? [];
-
-    const statusLabel = (() => {
-      switch (item.resumeStatus) {
-        case 'resumed': return '復帰済み';
-        case 'snoozed': return 'あとで戻る';
-        case 'abandoned': return '未復帰';
-        default: return '未復帰';
-      }
-    })();
-
-    const statusStyle = (() => {
-      switch (item.resumeStatus) {
-        case 'resumed': return [styles.badge, styles.badgeSuccess];
-        case 'snoozed': return [styles.badge, styles.badgeSnooze];
-        case 'abandoned': return [styles.badge, styles.badgeAbandoned];
-        default: return [styles.badge, styles.badgeAbandoned];
-      }
-    })();
 
     return (
       <View>
@@ -138,53 +31,34 @@ export function HistoryScreen() {
             <Text style={styles.monthText}>{curMonth}</Text>
           </View>
         )}
-        <View style={[styles.card,
-          item.resumeStatus === 'resumed' && styles.cardDone,
-          item.resumeStatus === 'snoozed' && styles.cardSnooze,
-        ]}>
-          <View style={styles.rowSpace}>
-            <Text style={styles.title}>{item.occurredLocal}</Text>
-            <Text style={statusStyle}>{statusLabel}</Text>
-          </View>
-
-          <View style={styles.tagRow}>
-            {item.tagLabels.length === 0 ? (
-              <Text style={styles.tagEmpty}>タグなし</Text>
-            ) : (
-              item.tagLabels.map((label, idx) => (
-                <View key={idx} style={styles.chip}>
-                  <Text style={styles.chipText}>{label}</Text>
-                </View>
-              ))
-            )}
-          </View>
-
-          <Text style={styles.body}>理由: {item.context.reasonText || '-'}</Text>
-          <Text style={styles.body}>復帰後の初手: {item.context.firstStepText || '-'}</Text>
-          <Text style={styles.meta}>
-            予定復帰まで: {item.context.returnAfterMinutes ?? '-'} 分
-          </Text>
-          {item.scheduledLocal && (
-            <Text style={styles.meta}>予定復帰時刻: {item.scheduledLocal}</Text>
-          )}
-        </View>
+        <HistoryCard
+          item={item}
+          isLatest={index === 0}
+          // 操作用ハンドラが必要ならここに渡す onResume/onSnooze/onAbandon
+        />
       </View>
     );
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={22} color="#2563eb" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{t('nav.history')}</Text>
+      </View>
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
         renderItem={renderItem}
+        contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={loading} onRefresh={load} />
+          <RefreshControl refreshing={loading} onRefresh={() => { /* useHistory は自動更新なので不要なら空で */ }} />
         }
         ListEmptyComponent={
           <Text style={styles.empty}>
-            {loading ? '読み込み中...' : '履歴がありません'}
+            {loading ? t('common.loading') : t('history.empty')}
           </Text>
         }
       />
@@ -194,7 +68,34 @@ export function HistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
-  listContent: { padding: 12, gap: 10 },
+  header: {
+    position: 'relative',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    minHeight: 56,            // ヘッダー高さを安定させる
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // タイトル中央
+    backgroundColor: '#f7f9fc',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 16,                 // 左端寄せ
+    height: 40,
+    width: 40,
+    justifyContent: 'center', // アイコン縦中央
+    alignItems: 'flex-start', // 左寄せ
+    paddingVertical: 0,
+    paddingRight: 0,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111',
+    textAlign: 'center',
+  },
+  listContent: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 16, gap: 10 },
+
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
@@ -246,7 +147,7 @@ const styles = StyleSheet.create({
 
   // styles 追加
   badgeSuccess: { backgroundColor: '#dcfce7', color: '#15803d' },
-  badgeSnooze: { backgroundColor: '#fef9c3', color: '#92400e' },
+  badgeOnBreak: { backgroundColor: '#fef9c3', color: '#92400e' },
   badgeAbandoned: { backgroundColor: '#fee2e2', color: '#b91c1c' },
   cardDone: { backgroundColor: '#f7fff9', borderColor: '#bbf7d0' },
   cardSnooze: { backgroundColor: '#fffdf3', borderColor: '#fef3c7' },
