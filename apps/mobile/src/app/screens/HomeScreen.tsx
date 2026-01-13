@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -13,7 +13,7 @@ import { useHistory } from '@/features/history';
 
 import { SummaryCard, useTodaySummary } from '@/features/summary';
 
-import { upsertResumeNotification } from '@/features/notification';
+import { upsertResumeNotification, useNotificationResponse } from '@/features/notification';
 import { InterruptionEvent } from '@/domain/interruption';
 
 type HeaderActions = {
@@ -68,6 +68,8 @@ export default function HomeScreen() {
   const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
   const hasAnyHistory = historyItems.length > 0;
 
+  const [highlight, setHighlight] = useState<boolean>(false);
+
   const { markResumed, markSnoozed, markAbandoned } = useInterruptionActions();
 
   // 差分表示用に現在時刻を更新（1秒ごと）
@@ -84,6 +86,11 @@ export default function HomeScreen() {
     const diffMs = now - scheduled;
     return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
   }, [latestOpen?.scheduledResumeAt, now]);
+
+  useNotificationResponse((interruptionId) => {
+    setHighlight(true);
+    setTimeout(() => setHighlight(false), 4000);
+  });
 
   const handleInterruptionSaved = async (e: InterruptionEvent) => {
     await reloadHistory();
@@ -139,7 +146,7 @@ export default function HomeScreen() {
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionHeader}>再開待ちの作業があります</Text>
           </View>
-          <View style={styles.latestCard}>
+          <View style={[styles.latestCard, highlight && styles.latestCardHighlight]}>
             <View style={styles.rowSpace}>
               <Text style={styles.cardTitle}>{t('home.label.scheduled')}: {latestOpen.scheduledLocal}</Text>
               <Text style={[styles.labelEmphasis, resumeDiff.isLate && styles.labelLate]}>
@@ -272,4 +279,12 @@ const styles = StyleSheet.create({
   },
   metaLabel: { fontSize: 12, color: '#6b7280' },
   metaValue: { flex: 1, fontSize: 13, color: '#111', textAlign: 'right' },
+
+  latestCardHighlight: {
+    borderColor: '#2563eb',
+    shadowColor: '#2563eb',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
 });
