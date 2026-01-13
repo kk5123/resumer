@@ -47,7 +47,8 @@ type Key =
   | 'duration.sign.zero'
   | 'duration.sign.plus'
   | 'duration.sign.minus'
-  | 'toast.save.failed';
+  | 'toast.save.failed'
+  | 'notification.fallback';
 
 const STRINGS: Record<Lang, Record<Key, string>> = {
   ja: {
@@ -97,7 +98,8 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'duration.sign.zero': 'ちょうど',
     'duration.sign.plus': '超過',
     'duration.sign.minus': 'あと',
-    'toast.save.failed': '中断の保存に失敗しました。再試行してください。'
+    'toast.save.failed': '中断の保存に失敗しました。再試行してください。',
+    'notification.fallback': '作業の再開予定時刻になりました',
   },
 }
 
