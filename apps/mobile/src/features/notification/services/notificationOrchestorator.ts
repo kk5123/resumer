@@ -25,7 +25,7 @@ export async function upsertResumeNotification({
   }
 
   // スケジュール
-  const id = await scheduleResumeNotification({ title, body, triggerDate });
+  const id = await scheduleResumeNotification({ interruptionId, title, body, triggerDate });
   await bindingRepo.save(interruptionId, id);
   return id;
 }
