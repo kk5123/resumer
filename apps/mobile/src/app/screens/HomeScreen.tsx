@@ -15,6 +15,7 @@ import { SummaryCard, useTodaySummary } from '@/features/summary';
 
 import { upsertResumeNotification, useNotificationResponse } from '@/features/notification';
 import { InterruptionEvent } from '@/domain/interruption';
+import { LatestOpenCard } from './components/LatestOpenCard';
 
 type HeaderActions = {
   onPressHistory: () => void;
@@ -154,42 +155,14 @@ export default function HomeScreen() {
       )}
 
       {latestOpen && (
-        <ScrollView style={styles.recentSection}>
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionHeader}>再開待ちの作業があります</Text>
-          </View>
-          <View style={[styles.latestCard, highlight && styles.latestCardHighlight]}>
-            <View style={styles.rowSpace}>
-              <Text style={styles.cardTitle}>{t('home.label.scheduled')}: {latestOpen.scheduledLocal}</Text>
-              <Text style={[styles.labelEmphasis, resumeDiff.isLate && styles.labelLate]}>
-                {resumeDiff.text}
-              </Text>
-            </View>
-
-            <Text style={styles.subLabel}>中断時刻: {latestOpen.occurredLocal ?? t('home.card.title')}</Text>
-
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>{t('history.body.reasonPrefix')}</Text>
-              <Text style={styles.metaValue}>{latestOpen.context.reasonText || '-'}</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>{t('history.body.firstStepPrefix')}</Text>
-              <Text style={styles.metaValue}>{latestOpen.context.firstStepText || '-'}</Text>
-            </View>
-
-            <View style={styles.actions}>
-              <TouchableOpacity style={styles.primary} onPress={handleResume}>
-                <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.secondary} onPress={handleSnooze5}>
-                <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.danger} onPress={handleAbandon}>
-                <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
+        <LatestOpenCard
+          latestOpen={latestOpen}
+          highlight={highlight}
+          resumeDiff={resumeDiff}
+          onResume={handleResume}
+          onSnooze5={handleSnooze5}
+          onAbandon={handleAbandon}
+        />
       )}
 
       {!latestOpen && !historyLoading && !hasAnyHistory && (
