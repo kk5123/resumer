@@ -6,7 +6,7 @@ import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
-import { useInterruptionActions } from '@/shared/actions/useInterruptionActions';
+import { useResumeActions } from '@/features/resume/hooks/useInterruptionActions';
 import { InterruptionEvent } from '@/domain/interruption';
 
 export function HistoryScreen() {
@@ -14,7 +14,7 @@ export function HistoryScreen() {
 
   const { items, loading, reload } = useHistory({ limit: 50 });
 
-  const { markResumed, markSnoozed, markAbandoned } = useInterruptionActions();
+  const { markResumed, markSnoozed, markAbandoned } = useResumeActions();
 
   const handleResume = useCallback(async (item: HistoryItem) => {
     await markResumed(item);

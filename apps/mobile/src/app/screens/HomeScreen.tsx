@@ -8,7 +8,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
 import { t } from '@/shared/i18n/strings';
 import { formatDiffHuman } from '@/shared/utils/date';
-import { useInterruptionActions } from '@/shared/actions/useInterruptionActions';
+import { useResumeActions } from '@/features/resume/hooks/useInterruptionActions';
 import { useHistory } from '@/features/history';
 
 import { SummaryCard, useTodaySummary } from '@/features/summary';
@@ -71,7 +71,7 @@ export default function HomeScreen() {
 
   const [highlight, setHighlight] = useState<boolean>(false);
 
-  const { markResumed, markSnoozed, markAbandoned } = useInterruptionActions();
+  const { markResumed, markSnoozed, markAbandoned } = useResumeActions();
 
   // 差分表示用に現在時刻を更新（1秒ごと）
   const [now, setNow] = useState(() => Date.now());

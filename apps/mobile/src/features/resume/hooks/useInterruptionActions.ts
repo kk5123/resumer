@@ -1,12 +1,11 @@
 import { useCallback } from 'react';
 import { useToast } from '@/shared/components/ToastProvider';
-import { InterruptionId } from '@/domain/common.types';
 import { createResumeEvent } from '@/domain/resume/factory';
-import { getResumePorts } from '@/features/resume/ports';
+import { getResumePorts } from '../ports';
 import { t } from '@/shared/i18n/strings';
 import { InterruptionEvent } from '@/domain/interruption';
 
-export function useInterruptionActions() {
+export function useResumeActions() {
   const { showToast } = useToast();
   const { resumeRepo } = getResumePorts();
 
