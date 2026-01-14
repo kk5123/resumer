@@ -23,6 +23,8 @@ export function LatestOpenCard({
   onSnooze5,
   onAbandon,
 }: Props) {
+  const hasSchedule = latestOpen.scheduledResumeAt != null;
+
   return (
     <ScrollView style={styles.recentSection}>
       <View style={styles.sectionHeaderRow}>
@@ -55,9 +57,12 @@ export function LatestOpenCard({
           <TouchableOpacity style={styles.primary} onPress={onResume}>
             <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondary} onPress={onSnooze5}>
-            <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
-          </TouchableOpacity>
+
+          {hasSchedule && (
+            <TouchableOpacity style={styles.secondary} onPress={onSnooze5}>
+              <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.danger} onPress={onAbandon}>
             <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
           </TouchableOpacity>

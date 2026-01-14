@@ -35,6 +35,8 @@ export function HistoryCard({
   const isClosable = item.resumeStatus !== 'abandoned' && item.resumeStatus !== 'resumed';
   const triggerTags = item.context.triggerTagIds ?? [];
 
+  const hasSchedule = item.scheduledResumeAt != null;
+
   return (
     <View style={[
       styles.card,
@@ -77,9 +79,12 @@ export function HistoryCard({
           <TouchableOpacity style={styles.primary} onPress={() => onResume?.(item)}>
             <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondary} onPress={() => onSnooze?.(item)}>
-            <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
-          </TouchableOpacity>
+
+          {hasSchedule && (
+            <TouchableOpacity style={styles.secondary} onPress={() => onSnooze?.(item)}>
+              <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
+            </TouchableOpacity>
+          )}
           <TouchableOpacity style={styles.danger} onPress={() => onAbandon?.(item)}>
             <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
           </TouchableOpacity>
