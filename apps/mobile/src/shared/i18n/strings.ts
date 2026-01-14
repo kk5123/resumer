@@ -39,6 +39,7 @@ type Key =
   | 'interruptModal.section.returnAfter'
   | 'interruptModal.unit.minute'
   | 'interruptModal.action.save'
+  | 'interruptModal.minites.undecided'
   | 'toastProvider.missing'
   | 'duration.unit.day'
   | 'duration.unit.hour'
@@ -90,6 +91,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'interruptModal.section.returnAfter': '何分後に戻れそう？',
     'interruptModal.unit.minute': '分',
     'interruptModal.action.save': '中断する',
+    'interruptModal.minites.undecided': '未定',
     'toastProvider.missing': 'ToastProviderがツリーにありません',
     'duration.unit.day': '日',
     'duration.unit.hour': '時間',

@@ -29,12 +29,16 @@ export function createInterruptionEvent(params: {
   context: InterruptionContext}): InterruptionEvent
 {
   const { occurredAt, recordedAt, context } = params;
+  const scheduled =
+    context.returnAfterMinutes == null
+      ? null
+      : addMinutes(recordedAt, context.returnAfterMinutes);
 
   return {
     id: generateInterruptionId(),
     occurredAt,
     recordedAt,
     context,
-    scheduledResumeAt: addMinutes(occurredAt, context.returnAfterMinutes?? 5),
+    scheduledResumeAt: scheduled,
   }
 }
