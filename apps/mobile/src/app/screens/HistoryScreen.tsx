@@ -1,5 +1,5 @@
 import { FlatList, RefreshControl, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 
 import { t } from '@/shared/i18n/strings';
@@ -10,7 +10,6 @@ export function HistoryScreen() {
   const navigation = useNavigation();
 
   const { items, loading } = useHistory({ limit: 50 });
-  const insets = useSafeAreaInsets();
 
   const monthKey = (iso: string) => {
     const d = new Date(iso);
