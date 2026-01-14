@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { HistoryItem } from '../types';
 import { t } from '@/shared/i18n/strings';
+import { ResumeActionBar } from '@/features/resume';
 
 type Props = {
   item: HistoryItem;
@@ -75,20 +76,12 @@ export function HistoryCard({
       )}
 
       {isLatest && isClosable && (
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.primary} onPress={() => onResume?.(item)}>
-            <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
-          </TouchableOpacity>
-
-          {hasSchedule && (
-            <TouchableOpacity style={styles.secondary} onPress={() => onSnooze?.(item)}>
-              <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.danger} onPress={() => onAbandon?.(item)}>
-            <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
-          </TouchableOpacity>
-        </View>
+        <ResumeActionBar
+          showSnooze={hasSchedule}
+          onResume={() => onResume?.(item)}
+          onSnooze={() => onSnooze?.(item)}
+          onAbandon={() => onAbandon?.(item)}
+        />
       )}
     </View>
   );

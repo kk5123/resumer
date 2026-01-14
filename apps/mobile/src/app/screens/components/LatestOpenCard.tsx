@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { InterruptionEvent } from '@/domain/interruption';
+import { ResumeActionBar } from '@/features/resume';
 import { t } from '@/shared/i18n/strings';
 
 type Props = {
@@ -53,20 +54,13 @@ export function LatestOpenCard({
           <Text style={styles.metaValue}>{latestOpen.context.firstStepText || '-'}</Text>
         </View>
 
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.primary} onPress={onResume}>
-            <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
-          </TouchableOpacity>
+        <ResumeActionBar
+          showSnooze={hasSchedule}
+          onResume={onResume}
+          onSnooze={onSnooze5}
+          onAbandon={onAbandon}
+        />
 
-          {hasSchedule && (
-            <TouchableOpacity style={styles.secondary} onPress={onSnooze5}>
-              <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity style={styles.danger} onPress={onAbandon}>
-            <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </ScrollView>
   );
