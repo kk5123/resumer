@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -87,10 +87,22 @@ export default function HomeScreen() {
     return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
   }, [latestOpen?.scheduledResumeAt, now]);
 
-  useNotificationResponse((interruptionId) => {
+  const hideHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleNotificationOpen = useCallback(() => {
     setHighlight(true);
-    setTimeout(() => setHighlight(false), 4000);
-  });
+    if (hideHighlightTimer.current) clearTimeout(hideHighlightTimer.current);
+    hideHighlightTimer.current = setTimeout(() => setHighlight(false), 4000);
+  }, []);
+
+  useNotificationResponse(handleNotificationOpen);
+
+  // アンマウント時にタイマーを掃除
+  useEffect(() => {
+    return () => {
+      if (hideHighlightTimer.current) clearTimeout(hideHighlightTimer.current);
+    };
+  }, []);
 
   const handleInterruptionSaved = async (e: InterruptionEvent) => {
     await reloadHistory();
