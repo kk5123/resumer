@@ -18,7 +18,7 @@ import { createInterruptionEvent, InterruptionEvent } from '@/domain/interruptio
 import { t } from '@/shared/i18n/strings';
 import { useToast } from '@/shared/components/ToastProvider';
 
-import { InterruptionId } from '@/domain/common.types';
+import { MinutesSelector } from './MinutesSelector';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -31,11 +31,6 @@ export type InterruptionDraft = {
   firstStepText: string;
   returnAfterMinutes: number | null;
 };
-
-function clampInt(n: number, min: number, max: number) {
-  if (!Number.isFinite(n)) return min;
-  return Math.max(min, Math.min(max, Math.trunc(n)));
-}
 
 export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
@@ -88,11 +83,6 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     returnAfterMinutes: null,
   });
 
-  const quickMinutes = useMemo(() => [5, 10, 25, 60], []);
-  const minutesDefault = 10;
-  const minutesMin = 1;
-  const minutesMax = 240;
-
   const handleCancel = () => {
     onCancel();
   };
@@ -133,28 +123,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     }
   };
 
-  const dec = () =>
-    setDraft((d) => ({
-      ...d,
-      returnAfterMinutes: d.returnAfterMinutes ? clampInt(d.returnAfterMinutes - 1, minutesMin, minutesMax): minutesDefault,
-    }));
-
-  const inc = () =>
-    setDraft((d) => ({
-      ...d,
-      returnAfterMinutes: d.returnAfterMinutes ? clampInt(d.returnAfterMinutes + 1, minutesMin, minutesMax): minutesDefault,
-    }));
-
-  const setUndecided = () =>
-    setDraft((d) => ({
-      ...d,
-      returnAfterMinutes: null,
-    }));
-
   if (!ready) return null;
-
-  const minutesLabel = t('interruptModal.unit.minute');
-  const undecidedLabel = t('interruptModal.minites.undecided');
 
   return (
     <Modal
@@ -202,40 +171,10 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
             <Text style={styles.sectionTitle}>{t('interruptModal.section.returnAfter')}</Text>
 
-            <View style={[styles.row, { alignItems: "center" }]}>
-              <Pressable onPress={dec} style={styles.stepperButton}>
-                <Text style={styles.stepperText}>-</Text>
-              </Pressable>
-
-              <View style={styles.minutesBox}>
-                <Text style={styles.minutesValue}>
-                  {draft.returnAfterMinutes ?? undecidedLabel}
-                </Text>
-                <Text style={styles.minutesLabel}>
-                  {draft.returnAfterMinutes != null ? minutesLabel : ''}
-                </Text>
-              </View>
-              <Pressable onPress={inc} style={styles.stepperButton}>
-                <Text style={styles.stepperText}>+</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.quickRow}>
-              <Pressable onPress={setUndecided} style={styles.quickButton}>
-                <Text style={styles.quickButtonText}>
-                  {t('interruptModal.minites.undecided')}
-                </Text>
-              </Pressable>
-              {quickMinutes.map((m) => (
-                <Pressable
-                  key={m}
-                  onPress={() => setDraft((d) => ({ ...d, returnAfterMinutes: m }))}
-                  style={styles.quickButton}
-                >
-                  <Text style={styles.quickButtonText}>{m}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <MinutesSelector
+              value={draft.returnAfterMinutes}
+              onChange={(v) => setDraft((d) => ({ ...d, returnAfterMinutes: v }))}
+            />
           </ScrollView>
 
           {/* Footer */}
