@@ -8,7 +8,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
 import { t } from '@/shared/i18n/strings';
 import { formatDiffHuman } from '@/shared/utils/date';
-import { useResumeActions } from '@/features/resume/hooks/useInterruptionActions';
+import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
 import { useHistory } from '@/features/history';
 
 import { SummaryCard, useTodaySummary } from '@/features/summary';

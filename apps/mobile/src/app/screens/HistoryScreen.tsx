@@ -6,7 +6,7 @@ import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
-import { useResumeActions } from '@/features/resume/hooks/useInterruptionActions';
+import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
 import { InterruptionEvent } from '@/domain/interruption';
 
 export function HistoryScreen() {
