@@ -4,20 +4,21 @@ import { InterruptionId } from '@/domain/common.types';
 import { createResumeEvent } from '@/domain/resume/factory';
 import { getResumePorts } from '@/features/resume/ports';
 import { t } from '@/shared/i18n/strings';
+import { InterruptionEvent } from '@/domain/interruption';
 
 export function useInterruptionActions() {
   const { showToast } = useToast();
   const { resumeRepo } = getResumePorts();
 
-  const markResumed = useCallback(async (interruptionId: InterruptionId) => {
-    const ev = createResumeEvent({ interruptionId, status: 'resumed' });
+  const markResumed = useCallback(async (event: InterruptionEvent) => {
+    const ev = createResumeEvent({ interruptionId: event.id, status: 'resumed' });
     await resumeRepo.save(ev);
     showToast(t('home.toast.resume'), { type: 'success' });
   }, [resumeRepo, showToast]);
 
-  const markSnoozed = useCallback(async (interruptionId: InterruptionId, minutes = 5) => {
+  const markSnoozed = useCallback(async (event: InterruptionEvent, minutes = 5) => {
     const ev = createResumeEvent({
-      interruptionId,
+      interruptionId: event.id,
       status: 'snoozed',
       snoozeMinutes: minutes,
     });
@@ -25,8 +26,8 @@ export function useInterruptionActions() {
     showToast(t('home.toast.snooze'), { type: 'info' });
   }, [resumeRepo, showToast]);
 
-  const markAbandoned = useCallback(async (interruptionId: InterruptionId) => {
-    const ev = createResumeEvent({ interruptionId, status: 'abandoned' });
+  const markAbandoned = useCallback(async (event: InterruptionEvent) => {
+    const ev = createResumeEvent({ interruptionId: event.id, status: 'abandoned' });
     await resumeRepo.save(ev);
     showToast(t('home.toast.abandon'), { type: 'success' });
   }, [resumeRepo, showToast]);

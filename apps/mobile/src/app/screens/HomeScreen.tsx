@@ -120,19 +120,19 @@ export default function HomeScreen() {
 
   const handleResume = async () => {
     if (!latestOpen) return;
-    await markResumed(latestOpen.id);
+    await markResumed(latestOpen);
     await reloadHistory();
   };
 
   const handleSnooze5 = async () => {
     if (!latestOpen) return;
-    await markSnoozed(latestOpen.id, 5);
+    await markSnoozed(latestOpen, 5);
     await reloadHistory();
   };
 
   const handleAbandon = async () => {
     if (!latestOpen) return;
-    await markAbandoned(latestOpen.id);
+    await markAbandoned(latestOpen);
     await reloadHistory();
   };
 

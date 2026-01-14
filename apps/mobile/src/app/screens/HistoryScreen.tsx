@@ -5,11 +5,31 @@ import { useNavigation } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 import { Ionicons } from '@expo/vector-icons';
+import { useCallback } from 'react';
+import { useInterruptionActions } from '@/shared/actions/useInterruptionActions';
+import { InterruptionEvent } from '@/domain/interruption';
 
 export function HistoryScreen() {
   const navigation = useNavigation();
 
-  const { items, loading } = useHistory({ limit: 50 });
+  const { items, loading, reload } = useHistory({ limit: 50 });
+
+  const { markResumed, markSnoozed, markAbandoned } = useInterruptionActions();
+
+  const handleResume = useCallback(async (item: HistoryItem) => {
+    await markResumed(item);
+    await reload();
+  }, [markResumed, reload]);
+
+  const handleSnooze = useCallback(async (item: HistoryItem) => {
+    await markSnoozed(item, 5); // 必要に応じて分数を変更
+    await reload();
+  }, [markSnoozed, reload]);
+
+  const handleAbandon = useCallback(async (item: HistoryItem) => {
+    await markAbandoned(item);
+    await reload();
+  }, [markAbandoned, reload]);
 
   const monthKey = (iso: string) => {
     const d = new Date(iso);
@@ -33,7 +53,9 @@ export function HistoryScreen() {
         <HistoryCard
           item={item}
           isLatest={index === 0}
-          // 操作用ハンドラが必要ならここに渡す onResume/onSnooze/onAbandon
+          onResume={handleResume}
+          onSnooze={handleSnooze}
+          onAbandon={handleAbandon}
         />
       </View>
     );

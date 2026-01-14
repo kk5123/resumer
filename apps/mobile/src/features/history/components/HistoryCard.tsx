@@ -7,9 +7,9 @@ import { t } from '@/shared/i18n/strings';
 type Props = {
   item: HistoryItem;
   isLatest?: boolean;
-  onResume?: (id: HistoryItem['id']) => void;
-  onSnooze?: (id: HistoryItem['id']) => void;
-  onAbandon?: (id: HistoryItem['id']) => void;
+  onResume?: (item: HistoryItem) => void;
+  onSnooze?: (item: HistoryItem) => void;
+  onAbandon?: (item: HistoryItem) => void;
 };
 
 export function HistoryCard({
@@ -74,13 +74,13 @@ export function HistoryCard({
 
       {isLatest && isClosable && (
         <View style={styles.actions}>
-          <TouchableOpacity style={styles.primary} onPress={() => onResume?.(item.id)}>
+          <TouchableOpacity style={styles.primary} onPress={() => onResume?.(item)}>
             <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.secondary} onPress={() => onSnooze?.(item.id)}>
+          <TouchableOpacity style={styles.secondary} onPress={() => onSnooze?.(item)}>
             <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.danger} onPress={() => onAbandon?.(item.id)}>
+          <TouchableOpacity style={styles.danger} onPress={() => onAbandon?.(item)}>
             <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
           </TouchableOpacity>
         </View>
