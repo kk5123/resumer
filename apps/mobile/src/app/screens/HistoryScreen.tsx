@@ -7,27 +7,29 @@ import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 import { Ionicons } from '@expo/vector-icons';
 import { useCallback } from 'react';
 import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
-import { InterruptionEvent } from '@/domain/interruption';
 
 export function HistoryScreen() {
   const navigation = useNavigation();
 
   const { items, loading, reload } = useHistory({ limit: 50 });
 
-  const { markResumed, markSnoozed, markAbandoned } = useResumeActions();
+  const latest = items[0] ?? null;
+  const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
 
-  const handleResume = useCallback(async (item: HistoryItem) => {
-    await markResumed(item);
+  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen);
+
+  const handleResume = useCallback(async () => {
+    await markResumed();
     await reload();
   }, [markResumed, reload]);
 
-  const handleSnooze = useCallback(async (item: HistoryItem) => {
-    await markSnoozed(item, 5); // 必要に応じて分数を変更
+  const handleSnooze = useCallback(async () => {
+    await markSnoozed(5);
     await reload();
   }, [markSnoozed, reload]);
 
-  const handleAbandon = useCallback(async (item: HistoryItem) => {
-    await markAbandoned(item);
+  const handleAbandon = useCallback(async () => {
+    await markAbandoned();
     await reload();
   }, [markAbandoned, reload]);
 
@@ -53,9 +55,9 @@ export function HistoryScreen() {
         <HistoryCard
           item={item}
           isLatest={index === 0}
-          onResume={handleResume}
-          onSnooze={handleSnooze}
-          onAbandon={handleAbandon}
+          onResume={index === 0 && latestOpen ? handleResume : undefined}
+          onSnooze={index === 0 && latestOpen ? handleSnooze : undefined}
+          onAbandon={index === 0 && latestOpen ? handleAbandon : undefined}
         />
       </View>
     );
