@@ -6,7 +6,14 @@ import { AsyncStorageResumeRepository } from '@/infra/resume';
 import { setNotificationPorts } from '@/features/notification';
 import { AsyncStorageNotificationBindingRepo } from '@/infra/notification';
 
+import { setSettingsPorts } from '@/features/settings';
+import { AsyncStorageSettingsRepository } from '@/infra/settings';
+
 export async function bootstrap() {
+  setSettingsPorts({
+    settingsRepo: new AsyncStorageSettingsRepository()
+  });
+
   setInterruptPorts({
     interruptionRepo: new AsyncStorageInterruptionRepository(),
     customTriggerTagRepo: new AsyncStorageCustomTriggerTagRepository()

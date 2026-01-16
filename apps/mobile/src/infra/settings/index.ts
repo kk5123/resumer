@@ -1,0 +1,1 @@
+export { AsyncStorageSettingsRepository } from './asyncStorage';
