@@ -5,38 +5,21 @@ import { useNavigation } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useState } from 'react';
-import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
 
 import { HistoryFilter } from './components/HistoryFilter';
 import { DateRange } from '@/domain/common.types';
+import { useState } from 'react';
 
 export function HistoryScreen() {
   const navigation = useNavigation();
 
   const [range, setRange] = useState<DateRange>({});
 
-  const { items, loading, reload } = useHistory({ from: range.from, to: range.to, limit: 50 });  
+  const { items, loading } = useHistory({ from: range.from, to: range.to, limit: 50 });  
   const latest = items[0] ?? null;
   const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
 
-
-  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen);
-
-  const handleResume = useCallback(async () => {
-    await markResumed();
-    await reload();
-  }, [markResumed, reload]);
-
-  const handleSnooze = useCallback(async () => {
-    await markSnoozed(5);
-    await reload();
-  }, [markSnoozed, reload]);
-
-  const handleAbandon = useCallback(async () => {
-    await markAbandoned();
-    await reload();
-  }, [markAbandoned, reload]);
+  const listItems = latestOpen ? items.slice(1) : items;
 
   const monthKey = (iso: string) => {
     const d = new Date(iso);
@@ -57,13 +40,7 @@ export function HistoryScreen() {
             <Text style={styles.monthText}>{curMonth}</Text>
           </View>
         )}
-        <HistoryCard
-          item={item}
-          isLatest={index === 0}
-          onResume={index === 0 && latestOpen ? handleResume : undefined}
-          onSnooze={index === 0 && latestOpen ? handleSnooze : undefined}
-          onAbandon={index === 0 && latestOpen ? handleAbandon : undefined}
-        />
+        <HistoryCard item={item} />
       </View>
     );
   };
@@ -78,7 +55,7 @@ export function HistoryScreen() {
       </View>
       <HistoryFilter onChange={setRange} />
       <FlatList
-        data={items}
+        data={listItems}
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
