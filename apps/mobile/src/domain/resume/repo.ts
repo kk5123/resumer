@@ -5,4 +5,6 @@ export type ResumeRepo = {
   save(event: ResumeEvent): Promise<void>;
   listByInterruptionId(InterruptionId: InterruptionId): Promise<ResumeEvent[]>;
   findLatestByInterruptionId(interruptionId: InterruptionId): Promise<ResumeEvent | null>;
+
+  deleteAll(): Promise<void>;
 };

@@ -107,6 +107,12 @@ export class AsyncStorageInterruptionRepository
     return events;
   }
 
+  async deleteAll(): Promise<void> {
+    const index = await this.loadIndex();
+    await Promise.all(index.map((id) => AsyncStorage.removeItem(eventKey(id))));
+    await AsyncStorage.removeItem(INTERRUPTION_INDEX_KEY);
+  }
+
   /* ========================
    * private helpers
    * ======================== */

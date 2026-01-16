@@ -14,4 +14,6 @@ export interface InterruptionRepository {
   update(event: InterruptionEvent): Promise<void>;
 
   listByPeriod(params: HistoryQuery): Promise<InterruptionEvent[]>;
+
+  deleteAll(): Promise<void>;
 }

@@ -4,9 +4,13 @@ import { Theme, Language, useSettings } from '@/features/settings'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { deleteAllHistoryData } from '@/features/settings';
+import { useToast } from '@/shared/components/ToastProvider';
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
+
+  const { showToast } = useToast();
 
   const {
     settings,
@@ -27,7 +31,10 @@ export default function SettingsScreen() {
   const confirmDeleteHistory = () => {
     Alert.alert('履歴データ削除', '履歴をすべて削除しますか？', [
       { text: 'キャンセル', style: 'cancel' },
-      { text: '削除する', style: 'destructive', onPress: () => console.log('TODO: delete history') },
+      { text: '削除する', style: 'destructive', onPress: async () => {
+        await deleteAllHistoryData();
+        showToast('履歴データをすべて削除しました', { type: 'success' });
+      } },
     ]);
   };
 
