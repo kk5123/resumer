@@ -53,7 +53,7 @@ export function useHistory(options: Options = {}) {
     } finally {
       setLoading(false);
     }
-  }, [interruptionRepo, resumeRepo, limit]);
+  }, [interruptionRepo, resumeRepo, query]);
 
   // 初回ロード
   useEffect(() => { reload(); }, [reload]);
