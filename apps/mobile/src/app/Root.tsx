@@ -4,6 +4,7 @@ import RootNavigator from './navigation/RootNavigator';
 import { useEffect, useState } from 'react';
 import { bootstrap } from './lifecycle/bootstrap';
 import { ToastProvider } from '@/shared/components/ToastProvider';
+import { SettingsProvider } from '@/features/settings';
 
 import { DebugPanel } from './debug/DebugPanel';
 
@@ -24,14 +25,16 @@ export default function Root() {
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" />
-      <ToastProvider>
-        <RootNavigator />
-        <DebugPanel
-          title="Storage Dump"
-          appKeyPrefix="rsm:"
-          hidden={!__DEV__}
-        />
+      <SettingsProvider>
+        <ToastProvider>
+          <RootNavigator />
+          <DebugPanel
+            title="Storage Dump"
+            appKeyPrefix="rsm:"
+            hidden={!__DEV__}
+          />
         </ToastProvider>
+      </SettingsProvider>
     </SafeAreaProvider>
   );
 }
