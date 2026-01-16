@@ -5,16 +5,21 @@ import { useNavigation } from '@react-navigation/native';
 import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
+
+import { HistoryFilter } from './components/HistoryFilter';
+import { DateRange } from '@/domain/common.types';
 
 export function HistoryScreen() {
   const navigation = useNavigation();
 
-  const { items, loading, reload } = useHistory({ limit: 50 });
+  const [range, setRange] = useState<DateRange>({});
 
+  const { items, loading, reload } = useHistory({ from: range.from, to: range.to, limit: 50 });  
   const latest = items[0] ?? null;
   const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
+
 
   const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen);
 
@@ -71,6 +76,7 @@ export function HistoryScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('nav.history')}</Text>
       </View>
+      <HistoryFilter onChange={setRange} />
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
