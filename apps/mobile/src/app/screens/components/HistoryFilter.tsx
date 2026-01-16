@@ -49,7 +49,10 @@ export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
   }, []);
 
   const onPick = useCallback((e: DateTimePickerEvent, date?: Date) => {
-    if (e.type === 'dismissed') { setPickerState((s) => ({ ...s, visible: false })); return; }
+    if (e.type === 'dismissed') {
+      setPickerState((s) => ({ ...s, visible: false }));
+      return;
+    }
     const picked = date ?? new Date();
     setRange((prev) => {
       const next: DateRange = { ...prev };
@@ -57,7 +60,8 @@ export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
       else next.to = endOfDay(picked);
       return next;
     });
-    setPickerState((s) => ({ ...s, visible: Platform.OS === 'ios' })); // iOSはそのまま残してもOK
+    // 選択後は必ず閉じる
+    setPickerState((s) => ({ ...s, visible: false }));
   }, [pickerState.mode]);
 
   const applyCustom = useCallback(() => {
@@ -105,8 +109,8 @@ export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
       {pickerState.visible && (
         <DateTimePicker
           value={pickerState.mode === 'from' ? range.from ?? new Date() : range.to ?? new Date()}
-          mode="date"
-          display="calendar"
+          mode='date'
+          display='default'
           onChange={onPick}
         />
       )}
