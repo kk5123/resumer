@@ -1,5 +1,5 @@
-export type Theme = 'system' | 'light' | 'dark';
-export type Language = 'ja' | 'en';
+export type Theme = 'light';
+export type Language = 'ja';
 
 export type Settings = {
   notificationsEnabled: boolean;
@@ -11,7 +11,7 @@ export type Settings = {
 export const defaultSettings: Settings = {
   notificationsEnabled: true,
   analyticsOptIn: false,
-  theme: 'system',
+  theme: 'light',
 };
 
 export interface SettingsRepo {

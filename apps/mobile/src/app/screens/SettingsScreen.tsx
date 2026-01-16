@@ -62,13 +62,10 @@ export default function SettingsScreen() {
         />
 
         <Text style={styles.sectionTitle}>テーマ</Text>
-        {renderThemeChoice('system', 'システム設定に従う')}
         {renderThemeChoice('light', 'ライト')}
-        {renderThemeChoice('dark', 'ダーク')}
 
         <Text style={styles.sectionTitle}>言語</Text>
         {renderLanguageChoice('ja', '日本語')}
-        {renderLanguageChoice('en', 'English')}
 
         <Text style={styles.sectionTitle}>履歴データ管理</Text>
         <Pressable style={styles.button} onPress={confirmDeleteHistory}>
