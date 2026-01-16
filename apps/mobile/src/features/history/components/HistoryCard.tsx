@@ -3,13 +3,14 @@ import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { HistoryItem } from '../types';
 import { t } from '@/shared/i18n/strings';
+import { ResumeActionBar } from '@/features/resume';
 
 type Props = {
   item: HistoryItem;
   isLatest?: boolean;
-  onResume?: (id: HistoryItem['id']) => void;
-  onSnooze?: (id: HistoryItem['id']) => void;
-  onAbandon?: (id: HistoryItem['id']) => void;
+  onResume?: (item: HistoryItem) => void;
+  onSnooze?: (item: HistoryItem) => void;
+  onAbandon?: (item: HistoryItem) => void;
 };
 
 export function HistoryCard({
@@ -34,6 +35,8 @@ export function HistoryCard({
 
   const isClosable = item.resumeStatus !== 'abandoned' && item.resumeStatus !== 'resumed';
   const triggerTags = item.context.triggerTagIds ?? [];
+
+  const hasSchedule = item.scheduledResumeAt != null;
 
   return (
     <View style={[
@@ -73,17 +76,12 @@ export function HistoryCard({
       )}
 
       {isLatest && isClosable && (
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.primary} onPress={() => onResume?.(item.id)}>
-            <Text style={styles.primaryText}>{t('home.button.resume')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.secondary} onPress={() => onSnooze?.(item.id)}>
-            <Text style={styles.secondaryText}>{t('home.button.snooze5')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.danger} onPress={() => onAbandon?.(item.id)}>
-            <Text style={styles.dangerText}>{t('home.button.abandon')}</Text>
-          </TouchableOpacity>
-        </View>
+        <ResumeActionBar
+          showSnooze={hasSchedule}
+          onResume={() => onResume?.(item)}
+          onSnooze={() => onSnooze?.(item)}
+          onAbandon={() => onAbandon?.(item)}
+        />
       )}
     </View>
   );

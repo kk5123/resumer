@@ -18,6 +18,7 @@ type Key =
   | 'home.toast.resume'
   | 'home.toast.snooze'
   | 'home.toast.abandon'
+  | 'home.notice.hasOpen'
   | 'history.status.resumed'
   | 'history.status.onbreak'
   | 'history.status.abandoned'
@@ -39,6 +40,7 @@ type Key =
   | 'interruptModal.section.returnAfter'
   | 'interruptModal.unit.minute'
   | 'interruptModal.action.save'
+  | 'interruptModal.minites.undecided'
   | 'toastProvider.missing'
   | 'duration.unit.day'
   | 'duration.unit.hour'
@@ -69,6 +71,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'home.toast.resume': '作業の再開を記録しました！',
     'home.toast.snooze': '中断を5分延長しました。',
     'home.toast.abandon': '作業を終了しました',
+    'home.notice.hasOpen': '再開待ちの作業があります',
     'history.status.resumed': '再開済',
     'history.status.onbreak': '再開予定',
     'history.status.abandoned': '終了',
@@ -90,6 +93,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'interruptModal.section.returnAfter': '何分後に戻れそう？',
     'interruptModal.unit.minute': '分',
     'interruptModal.action.save': '中断する',
+    'interruptModal.minites.undecided': '未定',
     'toastProvider.missing': 'ToastProviderがツリーにありません',
     'duration.unit.day': '日',
     'duration.unit.hour': '時間',

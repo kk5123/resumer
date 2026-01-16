@@ -1,5 +1,4 @@
-import { useState, useMemo } from 'react';
-
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Modal,
   View,
@@ -9,18 +8,17 @@ import {
   ScrollView,
   TextInput
 } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+  import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { TriggerTagPicker, TriggerTagPickerHandle } from './TriggerTagPicker';
 
 import { TriggerTag } from '@/domain/triggerTag';
-import { useEffect, useRef } from 'react';
 import { getInterruptPorts } from '../ports';
 import { createInterruptionEvent, InterruptionEvent } from '@/domain/interruption';
 import { t } from '@/shared/i18n/strings';
 import { useToast } from '@/shared/components/ToastProvider';
 
-import { InterruptionId } from '@/domain/common.types';
+import { MinutesSelector } from './MinutesSelector';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -31,13 +29,8 @@ export type InterruptCaptureModalProps = {
 export type InterruptionDraft = {
   reasonText: string;
   firstStepText: string;
-  returnAfterMinutes: number;
+  returnAfterMinutes: number | null;
 };
-
-function clampInt(n: number, min: number, max: number) {
-  if (!Number.isFinite(n)) return min;
-  return Math.max(min, Math.min(max, Math.trunc(n)));
-}
 
 export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { visible, onCancel, onSave } = props;
@@ -64,6 +57,9 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     } else {
       setOccurredAt(null);
     }
+    return () => {
+      mounted = false;
+    };
   }, [visible]);
 
   useEffect(() => {
@@ -76,24 +72,20 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
         setReady(true);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
-
 
   const [draft, setDraft] = useState<InterruptionDraft>({
     reasonText: '',
     firstStepText: '',
-    returnAfterMinutes: 5,
+    returnAfterMinutes: null,
   });
-
-  const quickMinutes = useMemo(() => [5, 10, 25, 60], []);
-
-  const minutesMin = 1;
-  const minutesMax = 240;
 
   const handleCancel = () => {
     onCancel();
-  }
+  };
 
   const handleSave = async () => {
     if (!occurredAt) return;
@@ -118,9 +110,9 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
           triggerTagIds,
           reasonText: draft.reasonText,
           firstStepText: draft.firstStepText,
-          returnAfterMinutes: draft.returnAfterMinutes
-        }
-      })
+          returnAfterMinutes: draft.returnAfterMinutes ?? undefined,
+        },
+      });
 
       await interruptionRepo.save(event);
       onSave(event);
@@ -162,7 +154,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
             <Text style={styles.caption}>{t('interruptModal.caption.reason')}</Text>
             <TextInput
               value={draft.reasonText}
-              onChangeText={(t) => setDraft((d) => ({ ...d, reasonText: t }))}
+              onChangeText={(tx) => setDraft((d) => ({ ...d, reasonText: tx }))}
               style={styles.input}
               multiline={false}
               returnKeyType="done"
@@ -171,7 +163,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
             <Text style={styles.caption}>{t('interruptModal.caption.firstStep')}</Text>
             <TextInput
               value={draft.firstStepText}
-              onChangeText={(t) => setDraft((d) => ({ ...d, firstStepText: t }))}
+              onChangeText={(tx) => setDraft((d) => ({ ...d, firstStepText: tx }))}
               style={styles.input}
               multiline={false}
               returnKeyType="done"
@@ -179,47 +171,10 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
             <Text style={styles.sectionTitle}>{t('interruptModal.section.returnAfter')}</Text>
 
-            <View style={[styles.row, { alignItems: "center" }]}>
-              <Pressable
-                onPress={() =>
-                  setDraft((d) => ({
-                    ...d,
-                    returnAfterMinutes: clampInt(d.returnAfterMinutes - 1, minutesMin, minutesMax),
-                  }))
-                }
-                style={styles.stepperButton}
-              >
-                <Text style={styles.stepperText}>-</Text>
-              </Pressable>
-
-              <View style={styles.minutesBox}>
-                <Text style={styles.minutesValue}>{draft.returnAfterMinutes}</Text>
-                <Text style={styles.minutesLabel}>{t('interruptModal.unit.minute')}</Text>
-              </View>
-              <Pressable
-                onPress={() =>
-                  setDraft((d) => ({
-                    ...d,
-                    returnAfterMinutes: clampInt(d.returnAfterMinutes + 1, minutesMin, minutesMax),
-                  }))
-                }
-                style={styles.stepperButton}
-              >
-                <Text style={styles.stepperText}>+</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.quickRow}>
-              {quickMinutes.map((m) => (
-                <Pressable
-                  key={m}
-                  onPress={() => setDraft((d) => ({ ...d, returnAfterMinutes: m }))}
-                  style={styles.quickButton}
-                >
-                  <Text style={styles.quickButtonText}>{m}</Text>
-                </Pressable>
-              ))}
-            </View>
+            <MinutesSelector
+              value={draft.returnAfterMinutes}
+              onChange={(v) => setDraft((d) => ({ ...d, returnAfterMinutes: v }))}
+            />
           </ScrollView>
 
           {/* Footer */}
@@ -281,11 +236,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'center',
-    width: 90,
+    width: 110,
   },
   minutesValue: { fontSize: 28, fontWeight: '700' },
   minutesLabel: { marginLeft: 6, fontSize: 14, opacity: 0.7 },
-  quickRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
+  quickRow: { flexDirection: 'row', gap: 10, marginTop: 12, flexWrap: 'wrap' },
   quickButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
   quickButtonText: { fontWeight: '600' },
   footer: {
@@ -309,6 +264,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
     gap: 12,
-  },
-  sectionTitle: { marginTop: 4, marginBottom: 6, fontSize: 15, fontWeight: '600' },
-});
+    },
+    sectionTitle: { marginTop: 4, marginBottom: 6, fontSize: 15, fontWeight: '600' },
+    });
