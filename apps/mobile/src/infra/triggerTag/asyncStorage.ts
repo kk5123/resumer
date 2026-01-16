@@ -63,6 +63,10 @@ export class AsyncStorageCustomTriggerTagRepository
     return hit ?? null;
   }
 
+  public async deleteAll(): Promise<void> {
+    this.saveAll({});
+  }
+
   /* ========================
    * private helpers
    * ======================== */

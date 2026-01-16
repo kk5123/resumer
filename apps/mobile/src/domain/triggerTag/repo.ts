@@ -6,4 +6,6 @@ export interface CustomTriggerTagRepository {
   listTopUsed(limit: number): Promise<CustomTriggerTag[]>;
 
   findById(tagId: TriggerTagId): Promise<CustomTriggerTag | null>;
+
+  deleteAll(): Promise<void>;
 }

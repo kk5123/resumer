@@ -39,4 +39,8 @@ export class AsyncStorageNotificationBindingRepo implements NotificationBindingR
     delete map[interruptionId as unknown as string];
     await saveAll(map);
   }
+
+  async deleteAll(): Promise<void> {
+    await saveAll({});
+  }
 }

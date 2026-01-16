@@ -11,6 +11,8 @@ import { formatDiffHuman } from '@/shared/utils/date';
 import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
 import { useHistory } from '@/features/history';
 
+import { RootStackParamList } from '../navigation/RootNavigator';
+
 import { SummaryCard, useTodaySummary } from '@/features/summary';
 
 import { upsertResumeNotification, useNotificationResponse } from '@/features/notification';
@@ -55,8 +57,6 @@ function SummaryCardContainer() {
     />
   );
 }
-
-type RootStackParamList = { Home: undefined; History: undefined };
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -140,7 +140,7 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header
         onPressHistory={() => navigation.navigate('History')}
-        onPressSettings={() => { }}
+        onPressSettings={() => navigation.navigate('Settings')}
       />
 
       <SummaryCardContainer />

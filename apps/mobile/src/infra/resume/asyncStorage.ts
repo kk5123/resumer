@@ -43,6 +43,13 @@ export class AsyncStorageResumeRepository implements ResumeRepo {
     return this.loadEvent(latestId);
   }
 
+  async deleteAll(): Promise<void> {
+    // 各 interruptionId ごとの index を消しつつ、イベント本体を削除
+    const keys = await AsyncStorage.getAllKeys();
+    const resumeEventKeys = keys.filter((k) => k.startsWith('rsm:resume:event:') || k.startsWith('rsm:resume:index:'));
+    if (resumeEventKeys.length) await AsyncStorage.multiRemove(resumeEventKeys);
+  }
+
   /* ========== private helpers ========== */
 
   private async loadIndex(interruptionId: string): Promise<string[]> {
