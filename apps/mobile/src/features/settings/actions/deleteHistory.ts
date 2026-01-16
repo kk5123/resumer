@@ -13,6 +13,7 @@ export async function deleteAllHistoryData(options: DeleteOptions = {}) {
   const { resumeRepo } = getResumePorts();
   const { bindingRepo } = getNotificationPorts();
 
+  await bindingRepo.deleteAll();
   await resumeRepo.deleteAll();
   await interruptionRepo.deleteAll();
 
