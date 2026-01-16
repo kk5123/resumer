@@ -12,7 +12,6 @@ export const defaultSettings: Settings = {
   notificationsEnabled: true,
   analyticsOptIn: true,
   theme: 'system',
-  language: 'ja',
 };
 
 export interface SettingsRepo {

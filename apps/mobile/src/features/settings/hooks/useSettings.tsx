@@ -9,7 +9,7 @@ type SettingsContextValue = {
   setNotificationsEnabled: (v: boolean) => void;
   setAnalyticsOptIn: (v: boolean) => void;
   setTheme: (v: Theme) => void;
-  setLanguage: (v: Language) => void;
+  setLanguage: (v: Language | undefined) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
