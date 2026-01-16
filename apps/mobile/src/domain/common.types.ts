@@ -8,3 +8,5 @@ export type InterruptionId = Brand<string, "InterruptionId">;
 export type TriggerTagId   = Brand<string, "TriggerTagId">;
 
 export type ResumeId = Brand<string, 'ResumeID'>;
+
+export type DateRange = { from?: Date; to?: Date; };

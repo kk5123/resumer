@@ -28,4 +28,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: './assets/favicon.png',
   },
+  plugins: [
+    '@react-native-community/datetimepicker',
+  ],
 });

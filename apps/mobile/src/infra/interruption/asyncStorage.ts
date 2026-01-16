@@ -1,9 +1,10 @@
 // src/infra/interruption/AsyncStorageInterruptionRepository.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { InterruptionId } from "@/domain/common.types";
+import { InterruptionId, ISODateTime } from "@/domain/common.types";
 import {
   InterruptionEvent,
-  InterruptionRepository
+  InterruptionRepository,
+  HistoryQuery
 } from '@/domain/interruption';
 
 const INTERRUPTION_INDEX_KEY = "rsm:interruption:index";
@@ -77,6 +78,33 @@ export class AsyncStorageInterruptionRepository
     return events.filter(
       (e): e is InterruptionEvent => e != null
     );
+  }
+
+  async listByPeriod(params: HistoryQuery): Promise<InterruptionEvent[]> {
+    const { from, to, limit = 50 } = params;
+    const fromMs = from ? new Date(from).getTime() : Number.NEGATIVE_INFINITY;
+    const toMs = to ? new Date(to).getTime() : Number.POSITIVE_INFINITY;
+    if (Number.isNaN(fromMs) || Number.isNaN(toMs) || fromMs > toMs) return [];
+
+    const index = await this.loadIndex();
+    if (index.length === 0) return [];
+
+    const events: InterruptionEvent[] = [];
+
+    for (let i = index.length - 1; i >= 0; --i) {
+      const ev = await this.loadEvent(index[i]);
+      if (!ev) continue;
+
+      const recordedMs = new Date(ev.recordedAt).getTime();
+      if (Number.isNaN(recordedMs)) continue;
+      if (recordedMs > toMs) continue;
+      if (recordedMs < fromMs) break;
+
+      events.push(ev);
+      if (events.length >= limit) break;
+    }
+
+    return events;
   }
 
   /* ========================

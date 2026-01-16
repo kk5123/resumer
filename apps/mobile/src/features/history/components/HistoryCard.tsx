@@ -1,25 +1,14 @@
 // components/HistoryCard.tsx
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, } from 'react-native';
 import { HistoryItem } from '../types';
 import { t } from '@/shared/i18n/strings';
-import { ResumeActionBar } from '@/features/resume';
 
 type Props = {
   item: HistoryItem;
-  isLatest?: boolean;
-  onResume?: (item: HistoryItem) => void;
-  onSnooze?: (item: HistoryItem) => void;
-  onAbandon?: (item: HistoryItem) => void;
-};
+}
 
-export function HistoryCard({
-  item,
-  isLatest = false,
-  onResume,
-  onSnooze,
-  onAbandon,
-}: Props) {
+export function HistoryCard({item}: Props) {
   const { statusLabel, statusStyle } = (() => {
     switch (item.resumeStatus) {
       case 'resumed':
@@ -33,10 +22,7 @@ export function HistoryCard({
     }
   })();
 
-  const isClosable = item.resumeStatus !== 'abandoned' && item.resumeStatus !== 'resumed';
   const triggerTags = item.context.triggerTagIds ?? [];
-
-  const hasSchedule = item.scheduledResumeAt != null;
 
   return (
     <View style={[
@@ -73,15 +59,6 @@ export function HistoryCard({
         </View>
       ) : (
         <Text style={[styles.meta, styles.tagEmpty]}>{t('history.tag.none')}</Text>
-      )}
-
-      {isLatest && isClosable && (
-        <ResumeActionBar
-          showSnooze={hasSchedule}
-          onResume={() => onResume?.(item)}
-          onSnooze={() => onSnooze?.(item)}
-          onAbandon={() => onAbandon?.(item)}
-        />
       )}
     </View>
   );
