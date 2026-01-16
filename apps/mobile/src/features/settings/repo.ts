@@ -10,7 +10,7 @@ export type Settings = {
 
 export const defaultSettings: Settings = {
   notificationsEnabled: true,
-  analyticsOptIn: true,
+  analyticsOptIn: false,
   theme: 'system',
 };
 
