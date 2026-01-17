@@ -1,6 +1,7 @@
 // features/tutorial/components/TutorialScreen.tsx
-import React from 'react';
+import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { Animated, Easing, } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -14,11 +15,26 @@ const slides: Slide[] = [
 type Props = { visible: boolean; onComplete: () => void };
 
 export function TutorialModal({ visible, onComplete }: Props) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  const handleStart = () => {
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(scale, { toValue: 0.96, duration: 80, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1.1, duration: 80, useNativeDriver: true }),
+        Animated.timing(scale, { toValue: 1.0, duration: 60, useNativeDriver: true }),
+      ]),
+      Animated.timing(opacity, { toValue: 0, duration: 220, easing: Easing.out(Easing.quad), useNativeDriver: true }),
+    ]).start(() => onComplete());
+  };
+
   if (!visible) return null;
 
   return (
     <View style={styles.overlay}>
-      <View style={styles.card}>
+      <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.25)', opacity }]} />
+      <Animated.View style={[styles.card, { transform: [{ scale }], opacity }]}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>このアプリの使い方</Text>
           <Text style={styles.headerBody}>作業が中断したきっかけを記録して、再開を手助けします。履歴で振り返りができます。</Text>
@@ -35,11 +51,11 @@ export function TutorialModal({ visible, onComplete }: Props) {
           </View>
         ))}
         <View style={styles.actions}>
-          <TouchableOpacity style={[styles.button, styles.primary]} onPress={onComplete}>
+          <TouchableOpacity style={[styles.button, styles.primary]} onPress={handleStart} activeOpacity={0.9}>
             <Text style={styles.buttonTextPrimary}>はじめる</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
