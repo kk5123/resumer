@@ -7,9 +7,11 @@ import { ToastProvider } from '@/shared/components/ToastProvider';
 import { SettingsProvider } from '@/features/settings';
 
 import { DebugPanel } from './debug/DebugPanel';
+import { useTutorialGate, TutorialModal } from '@/features/tutorial';
 
 export default function Root() {
   const [ready, setReady] = useState(false);
+  const { ready: tutorialReady, showTutorial, complete } = useTutorialGate();
 
   useEffect(() => {
     let mounted = true;
@@ -20,17 +22,20 @@ export default function Root() {
     return () => { mounted = false; }
   }, []);
 
-  if (!ready) return null;
+  if (!ready || !tutorialReady) return null;
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="dark" />
+      <StatusBar style='dark' />
       <SettingsProvider>
         <ToastProvider>
           <RootNavigator />
+          {showTutorial && (
+            <TutorialModal visible={showTutorial} onComplete={complete} />
+          )}
           <DebugPanel
-            title="Storage Dump"
-            appKeyPrefix="rsm:"
+            title='Storage Dump'
+            appKeyPrefix='rsm:'
             hidden={!__DEV__}
           />
         </ToastProvider>
