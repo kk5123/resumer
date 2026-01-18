@@ -1,17 +1,14 @@
 // src/infra/interruption/AsyncStorageInterruptionRepository.ts
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { InterruptionId, ISODateTime } from "@/domain/common.types";
+import { storageKey } from "@/shared/constants/storage";
 import {
   InterruptionEvent,
   InterruptionRepository,
   HistoryQuery
 } from '@/domain/interruption';
 
-const INTERRUPTION_INDEX_KEY = "rsm:interruption:index";
-
-function eventKey(id: string): string {
-  return `rsm:interruption:event:${id}`;
-}
+const INTERRUPTION_INDEX_KEY = storageKey('interruption:index');
+const INTERRUPTION_EVENT_KEY = (id: string) => storageKey(`interruption:event:${id}`);
 
 export class AsyncStorageInterruptionRepository
   implements InterruptionRepository {
@@ -24,7 +21,7 @@ export class AsyncStorageInterruptionRepository
 
     // 1. イベント本体保存
     await AsyncStorage.setItem(
-      eventKey(id),
+      INTERRUPTION_EVENT_KEY(id),
       JSON.stringify(event)
     );
 
@@ -44,7 +41,7 @@ export class AsyncStorageInterruptionRepository
     const id = event.id as unknown as string;
 
     await AsyncStorage.setItem(
-      eventKey(id),
+      INTERRUPTION_EVENT_KEY(id),
       JSON.stringify(event)
     );
     // index は触らない（IDは既に存在している前提）
@@ -109,7 +106,7 @@ export class AsyncStorageInterruptionRepository
 
   async deleteAll(): Promise<void> {
     const index = await this.loadIndex();
-    await Promise.all(index.map((id) => AsyncStorage.removeItem(eventKey(id))));
+    await Promise.all(index.map((id) => AsyncStorage.removeItem(INTERRUPTION_EVENT_KEY(id))));
     await AsyncStorage.removeItem(INTERRUPTION_INDEX_KEY);
   }
 
@@ -137,7 +134,7 @@ export class AsyncStorageInterruptionRepository
   private async loadEvent(
     id: string
   ): Promise<InterruptionEvent | null> {
-    const raw = await AsyncStorage.getItem(eventKey(id));
+    const raw = await AsyncStorage.getItem(INTERRUPTION_EVENT_KEY(id));
     if (!raw) return null;
     try {
       return JSON.parse(raw) as InterruptionEvent;

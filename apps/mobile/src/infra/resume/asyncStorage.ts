@@ -2,10 +2,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ResumeRepo } from '@/domain/resume/repo';
 import { ResumeEvent } from '@/domain/resume/types';
 import { InterruptionId } from '@/domain/common.types';
+import { storageKey } from '@/shared/constants/storage';
 
-const RESUME_EVENT_KEY = (id: string) => `rsm:resume:event:${id}`;
+const RESUME_EVENT_KEY = (id: string) => storageKey(`resume:event:${id}`);
 const RESUME_INDEX_KEY = (interruptionId: string) =>
-  `rsm:resume:index:${interruptionId}`;
+  storageKey(`resume:index:${interruptionId}`);
 
 export class AsyncStorageResumeRepository implements ResumeRepo {
   async save(event: ResumeEvent): Promise<void> {
