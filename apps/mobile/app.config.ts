@@ -47,5 +47,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   extra: {
     appNameEn: 'Pause Memo',
+    eas: {
+      projectId: "e8f8af05-2e4b-4b70-8301-aadc743e86ee"
+    }
   },
 });

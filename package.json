@@ -5,5 +5,8 @@
   "packageManager": "pnpm@9.12.0",
   "scripts": {
     "start": "pnpm --filter mobile start"
+  },
+  "devDependencies": {
+    "@expo/cli": "^54.0.21"
   }
 }
