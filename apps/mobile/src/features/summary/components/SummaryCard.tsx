@@ -22,12 +22,10 @@ export function SummaryCard({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>{dateLabel}のサマリ</Text>
-          {weekRange && (
-            <Text style={styles.subtitle}>{weekRange}</Text>
-          )}
-        </View>
+        <Text style={styles.title}>{dateLabel}のサマリ</Text>
+        {weekRange && (
+          <Text style={styles.subtitle}>{weekRange}</Text>
+        )}
       </View>
 
       <Text style={styles.total}>{total} 件</Text>
@@ -65,9 +63,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 15, fontWeight: '700', color: '#111' },
   subtitle: {
-    fontSize: 11,
+    fontSize: 14,
     color: '#6b7280',
-    marginTop: 2,
   },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 4 },
   link: { fontSize: 12, color: '#2563eb', fontWeight: '700' },
