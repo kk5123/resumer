@@ -18,6 +18,7 @@ import { SummaryCard, useTodaySummary } from '@/features/summary';
 import { upsertResumeNotification, useNotificationResponse } from '@/features/notification';
 import { InterruptionEvent } from '@/domain/interruption';
 import { LatestOpenCard } from './components/LatestOpenCard';
+import { useWeekSummary } from '@/features/summary/hooks/useWeekSummary';
 
 type HeaderActions = {
   onPressHistory: () => void;
@@ -41,14 +42,15 @@ function Header({ onPressHistory, onPressSettings }: HeaderActions) {
 }
 
 function SummaryCardContainer() {
-  const { summary, loading } = useTodaySummary(200);
+  const { summary, loading, weekRangeLabel } = useWeekSummary(200);
 
   if (loading)
     return null;
 
   return (
     <SummaryCard
-      dateLabel="今日"
+      dateLabel="今週"
+      weekRange={weekRangeLabel}
       total={summary.total}
       resumed={summary.resumed}
       abandoned={summary.abandoned}
