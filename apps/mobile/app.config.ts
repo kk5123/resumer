@@ -16,7 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     backgroundColor: '#ffffff',
   },
   ios: {
-    bundleIdentifier: 'dev.kk5123.pausememo',
+    bundleIdentifier: 'dev.kk5123.pause-memo',
     buildNumber: '1',
     supportsTablet: true,
     infoPlist: {
@@ -24,7 +24,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
   },
   android: {
-    package: 'dev.kk5123.pausememo',
+    package: 'dev.kk5123.pause_memo',
     versionCode: 1,
     permissions: [
       'android.permission.RECEIVE_BOOT_COMPLETED',
