@@ -1,11 +1,12 @@
 import React from 'react';
-import { ScrollView, View, Text, Switch, Pressable, Alert, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ScrollView, View, Text, Switch, Pressable, Alert, StyleSheet, ActivityIndicator, TouchableOpacity, Linking } from 'react-native';
 import { Theme, Language, useSettings } from '@/features/settings'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteAllHistoryData } from '@/features/settings';
 import { useToast } from '@/shared/components/ToastProvider';
+import { FEEDBACK_FORM_URL } from '@/shared/constants/config';
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -32,18 +33,20 @@ export default function SettingsScreen() {
   const confirmDeleteHistory = () => {
     Alert.alert('履歴データ削除', '履歴をすべて削除しますか？', [
       { text: 'キャンセル', style: 'cancel' },
-      { text: '削除する', style: 'destructive', onPress: async () => {
-        await deleteAllHistoryData();
-        showToast('履歴データをすべて削除しました', { type: 'success' });
-      } },
+      {
+        text: '削除する', style: 'destructive', onPress: async () => {
+          await deleteAllHistoryData();
+          showToast('履歴データをすべて削除しました', { type: 'success' });
+        }
+      },
     ]);
   };
 
   const renderWeekStartChoice = (value: 'monday' | 'sunday', label: string) => (
-    <ChoiceRow 
-      label={label} 
-      selected={settings.weekStart === value} 
-      onPress={() => setWeekStart(value)} 
+    <ChoiceRow
+      label={label}
+      selected={settings.weekStart === value}
+      onPress={() => setWeekStart(value)}
     />
   );
 
@@ -55,11 +58,22 @@ export default function SettingsScreen() {
     <ChoiceRow label={label} selected={settings.language === value} onPress={() => setLanguage(value)} />
   );
 
+  const handleOpenFeedback = async () => {
+    const feedbackUrl = FEEDBACK_FORM_URL;
+    const canOpen = await Linking.canOpenURL(feedbackUrl);
+    if (canOpen) {
+      await Linking.openURL(feedbackUrl);
+    } else {
+      showToast('フィードバックフォームを開けませんでした', { type: 'error' });
+    }
+  };
+
+
   return (
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#2563eb" />
+          <Ionicons name='chevron-back' size={22} color='#2563eb' />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>設定</Text>
       </View>
@@ -79,6 +93,12 @@ export default function SettingsScreen() {
 
         <Text style={styles.sectionTitle}>言語</Text>
         {renderLanguageChoice('ja', '日本語')}
+
+        <Text style={styles.sectionTitle}>フィードバック</Text>
+        <Pressable style={styles.row} onPress={handleOpenFeedback}>
+          <Text style={styles.label}>フィードバックを送信</Text>
+          <Ionicons name='open-outline' size={20} color='#6b7280' />
+        </Pressable>
 
         <Text style={styles.sectionTitle}>履歴データ管理</Text>
         <Pressable style={styles.button} onPress={confirmDeleteHistory}>
