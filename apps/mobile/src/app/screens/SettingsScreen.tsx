@@ -18,6 +18,7 @@ export default function SettingsScreen() {
     setNotificationsEnabled,
     setTheme,
     setLanguage,
+    setWeekStart,
   } = useSettings();
 
   if (!loaded) {
@@ -37,6 +38,14 @@ export default function SettingsScreen() {
       } },
     ]);
   };
+
+  const renderWeekStartChoice = (value: 'monday' | 'sunday', label: string) => (
+    <ChoiceRow 
+      label={label} 
+      selected={settings.weekStart === value} 
+      onPress={() => setWeekStart(value)} 
+    />
+  );
 
   const renderThemeChoice = (value: Theme, label: string) => (
     <ChoiceRow label={label} selected={settings.theme === value} onPress={() => setTheme(value)} />
@@ -60,6 +69,10 @@ export default function SettingsScreen() {
           label='プッシュ通知を受け取る'
           right={<Switch value={settings.notificationsEnabled} onValueChange={setNotificationsEnabled} />}
         />
+
+        <Text style={styles.sectionTitle}>週の開始日（サマリの集計期間に影響します）</Text>
+        {renderWeekStartChoice('monday', '月曜日')}
+        {renderWeekStartChoice('sunday', '日曜日')}
 
         <Text style={styles.sectionTitle}>テーマ</Text>
         {renderThemeChoice('light', 'ライト')}
