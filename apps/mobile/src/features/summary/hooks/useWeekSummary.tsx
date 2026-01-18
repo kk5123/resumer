@@ -4,6 +4,7 @@ import { useHistory } from '@/features/history';
 import { TriggerTagId } from '@/domain/common.types';
 import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
 import { getInterruptPorts } from '@/features/interrupt/ports';
+import { useSettings } from '@/features/settings/hooks/useSettings';
 
 export type FrequentTrigger = { tagId: TriggerTagId; count: number };
 
@@ -23,33 +24,56 @@ async function labelFor(id: TriggerTagId): Promise<string> {
 
 // useWeekSummary.ts
 export function useWeekSummary(limit = 200) {
+  const { settings } = useSettings(); // 追加
+  const weekStart = settings.weekStart; // 追加
+
   const { startOfWeek, endOfWeek, weekRangeLabel } = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
+    const today = new Date(d);
     
-    // 月曜日を週の開始日とする
+    // 設定に応じて週の開始日を決定
     const dayOfWeek = d.getDay();
-    const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-    const start = new Date(d);
-    start.setDate(start.getDate() - daysToMonday);
+    let daysToStart: number;
     
-    // 週の終了日（日曜日 23:59:59）
+    if (weekStart === 'monday') {
+      daysToStart = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    } else {
+      daysToStart = dayOfWeek;
+    }
+    
+    const start = new Date(d);
+    start.setDate(start.getDate() - daysToStart);
+    
+    // 週の終了日（開始日から6日後 23:59:59）
     const end = new Date(start);
     end.setDate(end.getDate() + 6);
     end.setHours(23, 59, 59, 999);
     
-    // 週の範囲を表示用にフォーマット
-    const formatDate = (date: Date) => {
-      return `${date.getMonth() + 1}/${date.getDate()}`;
+    // 終了日が今日を超えている場合は今日までに制限
+    const displayEnd = end > today ? today : end;
+    
+    // 週の範囲を表示用にフォーマット（曜日を含む）
+    const formatDateWithWeekday = (date: Date) => {
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const weekday = new Intl.DateTimeFormat('ja-JP', { weekday: 'short' }).format(date);
+      return `${month}/${day}(${weekday})`;
     };
-    const weekRangeLabel = `${formatDate(start)}〜${formatDate(end)}`;
+    
+    // 終了日が今日の場合、特別な表示を追加
+    const endLabel = displayEnd.getTime() === today.getTime() 
+      ? formatDateWithWeekday(displayEnd)
+      : formatDateWithWeekday(displayEnd);
+    
+    const weekRangeLabel = `${formatDateWithWeekday(start)}〜${endLabel}`;
     
     return {
       startOfWeek: start.getTime(),
-      endOfWeek: end.getTime(),
+      endOfWeek: end.getTime(), // フィルタリング用は元の週の終了日を保持
       weekRangeLabel,
     };
-  }, []);
+  }, [weekStart]);
 
   const { items, loading, error, reload } = useHistory({ limit });
   const [frequentLabel, setFrequentLabel] = useState<string>('-');
