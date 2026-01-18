@@ -1,8 +1,9 @@
 // infra/settings/storage.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Settings, SettingsRepo, defaultSettings } from '@/features/settings';
+import { storageKey } from '@/shared/constants/storage';
 
-const STORAGE_KEY = 'rsm:settings';
+const STORAGE_KEY = storageKey('settings');
 
 export class AsyncStorageSettingsRepository implements SettingsRepo {
   async load(): Promise<Settings> {

@@ -56,7 +56,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
   ja: {
     'common.loading': '読み込み中...',
     'common.showHistory': '履歴を見る',
-    'app.title': '復帰アシスト',
+    'app.title': '中断メモ',
     'nav.home': 'ダッシュボード',
     'nav.history': '履歴',
     'home.card.title': '最新の作業中断',

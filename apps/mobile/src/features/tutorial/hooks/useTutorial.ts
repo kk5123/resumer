@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+import { storageKey } from '@/shared/constants/storage';
 
-const KEY = 'rsm:tutorialSeen';
+const KEY = storageKey('tutorialSeen');
 
 export function useTutorialGate() {
   const [showTutorial, setShowTutorial] = useState(false);

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TriggerTagId, ISODateTime } from '@/domain/common.types';
 import { CustomTriggerTagRepository, CustomTriggerTag, TriggerTag } from '@/domain/triggerTag';
+import { storageKey } from '@/shared/constants/storage';
 
-const CUSTOM_TRIGGER_TAGS_KEY = 'rsm:triggerTags:custom';
+const CUSTOM_TRIGGER_TAGS_KEY = storageKey('triggerTags:custom');
 
 /**
  * AsyncStorage 実装:

@@ -2,8 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { InterruptionId } from '@/domain/common.types';
 import { NotificationBindingRepo } from '@/features/notification/repo';
 import { NotificationId } from '@/features/notification/types';
+import { storageKey } from '@/shared/constants/storage';
 
-const STORAGE_KEY = 'rsm:notificationBindings'; // Record<string, string>
+const STORAGE_KEY = storageKey('notificationBindings'); // Record<string, string>
 
 type RawMap = Record<string, string>;
 

@@ -2,33 +2,50 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Resumer',
-  slug: 'resumer',
+  name: '中断メモ',
+  slug: 'pause-memo',
   version: '0.1.0',
+  description: '作業を中断した瞬間を素早く記録し、次に再開するときの迷いを減らすためのメモアプリです。中断理由や次にやるべきことをその場で残すことで、作業の文脈を失わずに復帰できます。タスク管理ではなく、中断という一瞬にフォーカスしたシンプルな設計が特徴です。',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
   splash: {
-    image: './assets/splash-icon.png',
+    image: './assets/icon.png',
     resizeMode: 'contain',
     backgroundColor: '#ffffff',
   },
   ios: {
+    bundleIdentifier: 'dev.kk5123.pause-memo',
+    buildNumber: '1',
     supportsTablet: true,
+    infoPlist: {
+      NSUserNotificationsUsageDescription: '作業再開のリマインダーを設定するために通知権限が必要です。',
+    },
   },
   android: {
+    package: 'dev.kk5123.pause_memo',
+    versionCode: 1,
+    permissions: [
+      'android.permission.RECEIVE_BOOT_COMPLETED',
+      'android.permission.POST_NOTIFICATIONS',
+      'android.permission.SCHEDULE_EXACT_ALARM',
+    ],
     adaptiveIcon: {
-      foregroundImage: './assets/adaptive-icon.png',
+      foregroundImage: './assets/icon.png',
       backgroundColor: '#ffffff',
     },
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
   },
   web: {
-    favicon: './assets/favicon.png',
+    favicon: './assets/icon.png',
   },
   plugins: [
     '@react-native-community/datetimepicker',
+    'expo-notifications',
   ],
+  extra: {
+    appNameEn: 'Pause Memo',
+  },
 });
