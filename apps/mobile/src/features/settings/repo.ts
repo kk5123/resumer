@@ -1,17 +1,20 @@
 export type Theme = 'light';
 export type Language = 'ja';
+export type WeekStart = 'monday' | 'sunday';
 
 export type Settings = {
   notificationsEnabled: boolean;
   analyticsOptIn: boolean;
   theme: Theme;
   language?: Language;
+  weekStart: WeekStart;
 };
 
 export const defaultSettings: Settings = {
   notificationsEnabled: true,
   analyticsOptIn: false,
   theme: 'light',
+  weekStart: 'sunday',
 };
 
 export interface SettingsRepo {

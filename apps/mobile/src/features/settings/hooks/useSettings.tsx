@@ -1,6 +1,6 @@
 // features/settings/useSettings.tsx
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import { Settings, defaultSettings, Theme, Language } from '../repo';
+import { Settings, defaultSettings, Theme, Language, WeekStart } from '../repo';
 import { getSettingsPorts } from '../ports';
 
 type SettingsContextValue = {
@@ -10,6 +10,7 @@ type SettingsContextValue = {
   setAnalyticsOptIn: (v: boolean) => void;
   setTheme: (v: Theme) => void;
   setLanguage: (v: Language | undefined) => void;
+  setWeekStart: (v: WeekStart) => void;
 };
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
@@ -43,6 +44,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setAnalyticsOptIn: (v) => update({ analyticsOptIn: v }),
     setTheme: (v) => update({ theme: v }),
     setLanguage: (v) => update({ language: v }),
+    setWeekStart: (v) => update({ weekStart: v }),
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
