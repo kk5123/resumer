@@ -63,6 +63,6 @@
 - バグ報告・提案はIssueへ。PRはDraft歓迎
 
 ## 📄 ライセンス
-MIT License
-Copyright (c) 2025 Mitsuki Takehara
-詳細は [LICENSE](LICENSE) ファイルを参照してください。
+- MIT License
+- Copyright (c) 2025 Mitsuki Takehara
+- 詳細は [LICENSE](LICENSE) ファイルを参照してください。
