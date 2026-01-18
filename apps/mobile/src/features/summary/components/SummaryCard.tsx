@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 type SummaryProps = {
   dateLabel?: string;            // 例: "今日" / "2026/01/12"
+  weekRange?: string;            // 例: "今週" / "2026/01/12-2026/01/18"
   total: number;                 // 中断件数
   resumed: number;               // 再開済
   abandoned: number;             // 終了
@@ -10,7 +11,8 @@ type SummaryProps = {
 };
 
 export function SummaryCard({
-  dateLabel = '今日',
+  dateLabel = '今週',
+  weekRange,
   total,
   resumed,
   abandoned,
@@ -20,7 +22,12 @@ export function SummaryCard({
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.title}>{dateLabel}のサマリ</Text>
+        <View>
+          <Text style={styles.title}>{dateLabel}のサマリ</Text>
+          {weekRange && (
+            <Text style={styles.subtitle}>{weekRange}</Text>
+          )}
+        </View>
       </View>
 
       <Text style={styles.total}>{total} 件</Text>
@@ -57,6 +64,11 @@ const styles = StyleSheet.create({
   },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 15, fontWeight: '700', color: '#111' },
+  subtitle: {
+    fontSize: 11,
+    color: '#6b7280',
+    marginTop: 2,
+  },
   linkBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, paddingHorizontal: 4 },
   link: { fontSize: 12, color: '#2563eb', fontWeight: '700' },
   total: { fontSize: 28, fontWeight: '800', color: '#111' },
