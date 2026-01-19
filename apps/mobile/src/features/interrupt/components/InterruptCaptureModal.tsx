@@ -21,6 +21,7 @@ import { useToast } from '@/shared/components/ToastProvider';
 import { MinutesSelector } from './MinutesSelector';
 
 import { useAsyncEffect } from '@/shared/hooks';
+import { Header } from '@/shared/components';
 
 export type InterruptCaptureModalProps = {
   visible: boolean;
@@ -52,14 +53,14 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
       setOccurredAt(null);
     }
   }, [visible]);
-  
+
   useAsyncEffect(async () => {
     const { customTriggerTagRepo } = getInterruptPorts();
     const tags = await customTriggerTagRepo.listTopUsed(10);
     setInitialCustomTags(tags);
     setReady(true);
   }, []);
-  
+
   // visible が true になった時にもタグを再読み込み
   useAsyncEffect(async () => {
     if (!visible) return;
@@ -106,7 +107,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
       await interruptionRepo.save(event);
       onSave(event);
-      showToast(t('toast.save.success'), { type: 'success'});
+      showToast(t('toast.save.success'), { type: 'success' });
     } catch (e) {
       console.error('[InterruptCaptureModal] save error', e);
       showToast(t('toast.save.failed'));
@@ -125,17 +126,15 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     >
       <SafeAreaProvider>
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Pressable onPress={handleCancel} hitSlop={12} style={styles.headerButton}>
-              <Text style={styles.headerClose}>キャンセル</Text>
-            </Pressable>
-            <Text style={styles.headerTitle}>{t('interruptModal.header')}</Text>
-            <View style={styles.headerSpacer} />
-          </View>
+          <Header
+            title={t('interruptModal.header')}
+            leftIcon='close'
+            onLeftPress={handleCancel}
+            backgroundColor='#ffffff'
+          />
 
-          <ScrollView 
-            style={styles.body} 
+          <ScrollView
+            style={styles.body}
             contentContainerStyle={styles.bodyContent}
             keyboardShouldPersistTaps='handled'
             showsVerticalScrollIndicator={false}
@@ -206,37 +205,9 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
+  container: {
+    flex: 1,
     backgroundColor: '#ffffff',
-  },
-  header: {
-    paddingTop: 12,
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  headerButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 4,
-  },
-  headerClose: { 
-    fontSize: 16, 
-    color: '#6b7280',
-    fontWeight: '600',
-  },
-  headerTitle: { 
-    textAlign: 'center',
-    fontSize: 18, 
-    fontWeight: '700', 
-    color: '#111',
-  },
-  headerSpacer: { 
-    width: 60,
   },
   body: {
     flex: 1,
@@ -249,9 +220,9 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
-  sectionTitle: { 
-    fontSize: 16, 
-    fontWeight: '700', 
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
     color: '#111',
     marginBottom: 12,
   },

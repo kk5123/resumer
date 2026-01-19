@@ -20,34 +20,7 @@ import { InterruptionEvent } from '@/domain/interruption';
 import { LatestOpenCard } from './components/LatestOpenCard';
 import { formatDiffHuman } from '@/shared/utils/date';
 import { ScrollView } from 'react-native';
-
-type HeaderActions = {
-  onPressHistory: () => void;
-  onPressSettings: () => void;
-}
-
-function Header({ onPressHistory, onPressSettings }: HeaderActions) {
-  return (
-    <View style={styles.header}>
-      <View style={styles.headerTitleContainer}>
-        <Image
-          source={require('../../../assets/icon.png')}
-          style={styles.headerIcon}
-          resizeMode="contain"
-        />
-        <Text style={styles.headerTitle}>{t('app.title')}</Text>
-      </View>
-      <View style={styles.headerActions}>
-        <TouchableOpacity onPress={onPressHistory} style={styles.headerButton} hitSlop={8}>
-          <Ionicons name="time-outline" size={22} color="#1f2937" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
-          <Ionicons name="settings-outline" size={22} color="#1f2937" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
+import { Header } from '@/shared/components';
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -127,8 +100,18 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header
-        onPressHistory={() => navigation.navigate('History')}
-        onPressSettings={() => navigation.navigate('Settings')}
+        titleAlign='left'
+        titleContent={
+          <View style={styles.headerTitleContainer}>
+            <Image source={require('../../../assets/icon.png')} style={styles.headerIcon} resizeMode='contain' />
+            <Text style={styles.headerTitle}>{t('app.title')}</Text>
+          </View>
+        }
+        rightActions={[
+          { icon: 'time-outline', onPress: () => navigation.navigate('History') },
+          { icon: 'settings-outline', onPress: () => navigation.navigate('Settings') },
+        ]}
+        backgroundColor='#fcfcfc'
       />
 
       <ScrollView
@@ -138,7 +121,7 @@ export default function HomeScreen() {
       >
         {!summaryLoading && (
           <SummaryCard
-            dateLabel="今週"
+            dateLabel='今週'
             weekRange={weekRangeLabel}
             total={summary.total}
             resumed={summary.resumed}
@@ -180,27 +163,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    height: 56,
-    width: '100%',
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  headerIcon: {
-    width: 60,
-    height: 60,
-    marginLeft: -20,
-  },
+  headerTitleContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, },
+  headerIcon: { width: 60, height: 60, marginLeft: -20, },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerButton: { paddingHorizontal: 6 },
   container: {
     flex: 1,
     backgroundColor: '#fcfcfc',

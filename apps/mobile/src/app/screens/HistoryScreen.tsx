@@ -4,11 +4,11 @@ import { useNavigation } from '@react-navigation/native';
 
 import { t } from '@/shared/i18n/strings';
 import { HistoryItem, HistoryCard, useHistory } from '@/features/history';
-import { Ionicons } from '@expo/vector-icons';
 
 import { HistoryFilter } from './components/HistoryFilter';
 import { DateRange } from '@/domain/common.types';
 import { useState } from 'react';
+import { Header } from '@/shared/components';
 
 export function HistoryScreen() {
   const navigation = useNavigation();
@@ -47,12 +47,7 @@ export function HistoryScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={22} color="#2563eb" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('nav.history')}</Text>
-      </View>
+      <Header title={t('nav.history')} onLeftPress={() => navigation.goBack()} />
       <HistoryFilter onChange={setRange} />
       <FlatList
         data={listItems}
@@ -74,42 +69,7 @@ export function HistoryScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f7f9fc' },
-  header: {
-    position: 'relative',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    minHeight: 56,            // ヘッダー高さを安定させる
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center', // タイトル中央
-    backgroundColor: '#f7f9fc',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 16,                 // 左端寄せ
-    height: 40,
-    width: 40,
-    justifyContent: 'center', // アイコン縦中央
-    alignItems: 'flex-start', // 左寄せ
-    paddingVertical: 0,
-    paddingRight: 0,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
-    textAlign: 'center',
-  },
   listContent: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 16, gap: 10 },
-
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    gap: 6,
-  },
   rowSpace: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,11 +110,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
-
-  // styles 追加
-  badgeSuccess: { backgroundColor: '#dcfce7', color: '#15803d' },
-  badgeOnBreak: { backgroundColor: '#fef9c3', color: '#92400e' },
-  badgeAbandoned: { backgroundColor: '#fee2e2', color: '#b91c1c' },
-  cardDone: { backgroundColor: '#f7fff9', borderColor: '#bbf7d0' },
-  cardSnooze: { backgroundColor: '#fffdf3', borderColor: '#fef3c7' },
 });
