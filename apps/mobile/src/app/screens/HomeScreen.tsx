@@ -77,9 +77,9 @@ export default function HomeScreen() {
   const [highlight, setHighlight] = useState<boolean>(false);
 
   const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen,
-    () => {
-      reloadHistory();
-      reloadSummary();
+    async () => {
+      await reloadHistory();
+      await reloadSummary();
     });
 
   const { diffMs, reload: reloadResumeDiff } = useResumeDiff(latestOpen?.id);
@@ -123,6 +123,21 @@ export default function HomeScreen() {
       });
   };
 
+  const handleInterruptButtonPress = useCallback(() => {
+    if (latestOpen) {
+      Alert.alert(
+        '前回の中断があります',
+        '新しい中断を記録する前に、既存の中断を終了してください',
+        [
+          { text: 'キャンセル', style: 'cancel', },
+          { text: '終了して新規記録', style: 'destructive', onPress: async () => { await markAbandoned(); setVisible(true); }, },
+        ]
+      );
+    } else {
+      setVisible(true);
+    }
+  }, [latestOpen, markAbandoned]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header
@@ -131,17 +146,17 @@ export default function HomeScreen() {
       />
 
       {!summaryLoading}
-<SummaryCard
-      dateLabel="今週"
-      weekRange={weekRangeLabel}
-      total={summary.total}
-      resumed={summary.resumed}
-      abandoned={summary.abandoned}
-      snoozed={summary.snoozed}
-      frequentTrigger={summary.frequentTrigger}
-    />
+      <SummaryCard
+        dateLabel="今週"
+        weekRange={weekRangeLabel}
+        total={summary.total}
+        resumed={summary.resumed}
+        abandoned={summary.abandoned}
+        snoozed={summary.snoozed}
+        frequentTrigger={summary.frequentTrigger}
+      />
 
-      <InterruptButton onPress={() => setVisible((v) => !v)} />
+      <InterruptButton onPress={handleInterruptButtonPress} />
       {visible && (
         <InterruptCaptureModal
           visible={visible}
