@@ -49,6 +49,7 @@ type Key =
   | 'duration.sign.zero'
   | 'duration.sign.plus'
   | 'duration.sign.minus'
+  | 'toast.save.success'
   | 'toast.save.failed'
   | 'notification.fallback';
 
@@ -71,7 +72,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'home.toast.resume': '作業の再開を記録しました！',
     'home.toast.snooze': '中断を5分延長しました。',
     'home.toast.abandon': '作業を終了しました',
-    'home.notice.hasOpen': '再開待ちの作業があります',
+    'home.notice.hasOpen': '前回の中断データがあります',
     'history.status.resumed': '再開済',
     'history.status.onbreak': '再開予定',
     'history.status.abandoned': '終了',
@@ -102,7 +103,8 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'duration.sign.zero': 'ちょうど',
     'duration.sign.plus': '超過',
     'duration.sign.minus': 'あと',
-    'toast.save.failed': '中断の保存に失敗しました。再試行してください。',
+    'toast.save.success': '中断データを記録しました！',
+    'toast.save.failed': '中断データの保存に失敗しました。再試行してください。',
     'notification.fallback': '作業の再開予定時刻になりました',
   },
 }

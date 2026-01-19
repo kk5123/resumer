@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-nati
 import { InterruptionEvent } from '@/domain/interruption';
 import { ResumeActionBar } from '@/features/resume';
 import { t } from '@/shared/i18n/strings';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
   latestOpen: InterruptionEvent & {
@@ -24,12 +25,15 @@ export function LatestOpenCard({
   onSnooze5,
   onAbandon,
 }: Props) {
-  const hasSchedule = latestOpen.scheduledResumeAt != null;
+  const showSnooze = resumeDiff.isLate;
 
   return (
-    <ScrollView style={styles.recentSection}>
+    <View style={styles.recentSection}>
       <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionHeader}>{t('home.notice.hasOpen')}</Text>
+        <View style={styles.sectionHeaderContainer}>
+          <Ionicons name="warning" size={16} color="#f59e0b" style={styles.warningIcon} />
+          <Text style={styles.sectionHeader}>{t('home.notice.hasOpen')}</Text>
+        </View>
       </View>
       <View style={[styles.latestCard, highlight && styles.latestCardHighlight]}>
         <View style={styles.rowSpace}>
@@ -55,21 +59,38 @@ export function LatestOpenCard({
         </View>
 
         <ResumeActionBar
-          showSnooze={hasSchedule}
+          showSnooze={showSnooze}
           onResume={onResume}
           onSnooze={onSnooze5}
           onAbandon={onAbandon}
         />
 
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   recentSection: { width: '100%', marginTop: 16 },
-  sectionHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  sectionHeader: { fontSize: 15, fontWeight: '700', color: '#111' },
+  sectionHeaderRow: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    justifyContent: 'space-between', 
+    marginBottom: 8 
+  },
+  sectionHeaderContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  sectionHeader: { 
+    fontSize: 15, 
+    fontWeight: '700', 
+    color: '#111' 
+  },
+  warningIcon: {
+    marginRight: 2,
+  },
   latestCard: {
     width: '100%',
     borderWidth: 1,

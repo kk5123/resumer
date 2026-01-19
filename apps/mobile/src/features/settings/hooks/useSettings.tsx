@@ -2,6 +2,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { Settings, defaultSettings, Theme, Language, WeekStart } from '../repo';
 import { getSettingsPorts } from '../ports';
+import { cancelAllResumeNotifications } from '@/features/notification/services/notificationOrchestorator';
 
 type SettingsContextValue = {
   settings: Settings;
@@ -26,6 +27,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const loadedSettings = await settingsRepo.load();
       setSettings(loadedSettings);
       setLoaded(true);
+
+      await settingsRepo.save(loadedSettings);
     })();
   }, []);
 
@@ -33,6 +36,13 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setSettings((prev) => {
       const next = { ...prev, ...patch };
       settingsRepo.save(next);
+
+      if (prev.notificationsEnabled && !next.notificationsEnabled) {
+        cancelAllResumeNotifications().catch((e) => {
+          console.error('[useSettings] failed to cancel all resume notifications', e);
+        });
+      }
+
       return next;
     });
   }, []);

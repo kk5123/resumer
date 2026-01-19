@@ -7,4 +7,6 @@ export interface NotificationBindingRepo {
   delete(interruptionId: InterruptionId): Promise<void>;
 
   deleteAll(): Promise<void>;
+
+  listAll(): Promise<NotificationId[]>;
 }

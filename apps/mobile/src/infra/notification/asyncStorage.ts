@@ -44,4 +44,9 @@ export class AsyncStorageNotificationBindingRepo implements NotificationBindingR
   async deleteAll(): Promise<void> {
     await saveAll({});
   }
+
+  async listAll(): Promise<NotificationId[]> {
+    const map = await loadAll();
+    return Object.values(map) as NotificationId[];
+  }
 }
