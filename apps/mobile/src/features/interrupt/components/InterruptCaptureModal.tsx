@@ -8,7 +8,7 @@ import {
   ScrollView,
   TextInput
 } from 'react-native';
-  import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { TriggerTagPicker, TriggerTagPickerHandle } from './TriggerTagPicker';
 
@@ -95,7 +95,6 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
     const selection = tagPickerRef.current?.getSelection();
     const triggerTagIds = selection?.selectedIds ?? [];
     const selectedCustomTags = selection?.customTags ?? [];
-    console.log(triggerTagIds, selectedCustomTags);
 
     try {
       const { interruptionRepo, customTriggerTagRepo } = getInterruptPorts();
@@ -116,9 +115,8 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
       await interruptionRepo.save(event);
       onSave(event);
-      console.log('[InterruptionCaptureModal] saved', event.id);
     } catch (e) {
-      console.error('[InterruptionCaptureModal] save error', e);
+      console.error('[InterruptCaptureModal] save error', e);
       showToast(t('toast.save.failed'));
     }
   };
@@ -137,53 +135,76 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right', 'bottom']}>
           {/* Header */}
           <View style={styles.header}>
-            <Pressable onPress={handleCancel} hitSlop={12}>
-              <Text style={styles.headerClose}>×</Text>
+            <Pressable onPress={handleCancel} hitSlop={12} style={styles.headerButton}>
+              <Text style={styles.headerClose}>キャンセル</Text>
             </Pressable>
             <Text style={styles.headerTitle}>{t('interruptModal.header')}</Text>
-            <View style={{ width: 28 }} />
+            <View style={styles.headerSpacer} />
           </View>
 
-          <ScrollView style={styles.body} keyboardShouldPersistTaps='handled'>
-            <Text style={styles.sectionTitle}>{t('interruptModal.section.trigger')}</Text>
-            <TriggerTagPicker
-              ref={tagPickerRef}
-              initialCustomTags={initialCustomTags}
-            />
+          <ScrollView 
+            style={styles.body} 
+            contentContainerStyle={styles.bodyContent}
+            keyboardShouldPersistTaps='handled'
+            showsVerticalScrollIndicator={false}
+          >
+            {/* きっかけ */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('interruptModal.section.trigger')}</Text>
+              <TriggerTagPicker
+                ref={tagPickerRef}
+                initialCustomTags={initialCustomTags}
+              />
+            </View>
 
-            <Text style={styles.caption}>{t('interruptModal.caption.reason')}</Text>
-            <TextInput
-              value={draft.reasonText}
-              onChangeText={(tx) => setDraft((d) => ({ ...d, reasonText: tx }))}
-              style={styles.input}
-              multiline={false}
-              returnKeyType="done"
-            />
+            {/* 理由メモ */}
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('interruptModal.caption.reason')}</Text>
+              <TextInput
+                value={draft.reasonText}
+                onChangeText={(tx) => setDraft((d) => ({ ...d, reasonText: tx }))}
+                style={styles.input}
+                placeholder="例: 集中力が切れた"
+                placeholderTextColor="#9ca3af"
+                multiline={false}
+                returnKeyType="next"
+              />
+            </View>
 
-            <Text style={styles.caption}>{t('interruptModal.caption.firstStep')}</Text>
-            <TextInput
-              value={draft.firstStepText}
-              onChangeText={(tx) => setDraft((d) => ({ ...d, firstStepText: tx }))}
-              style={styles.input}
-              multiline={false}
-              returnKeyType="done"
-            />
+            {/* 再開後の初手 */}
+            <View style={styles.section}>
+              <Text style={styles.label}>{t('interruptModal.caption.firstStep')}</Text>
+              <TextInput
+                value={draft.firstStepText}
+                onChangeText={(tx) => setDraft((d) => ({ ...d, firstStepText: tx }))}
+                style={styles.input}
+                placeholder="例: メールを確認する"
+                placeholderTextColor="#9ca3af"
+                multiline={false}
+                returnKeyType="next"
+              />
+            </View>
 
-            <Text style={styles.sectionTitle}>{t('interruptModal.section.returnAfter')}</Text>
-
-            <MinutesSelector
-              value={draft.returnAfterMinutes}
-              onChange={(v) => setDraft((d) => ({ ...d, returnAfterMinutes: v }))}
-            />
+            {/* 復帰予定時刻 */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>{t('interruptModal.section.returnAfter')}</Text>
+              <MinutesSelector
+                value={draft.returnAfterMinutes}
+                onChange={(v) => setDraft((d) => ({ ...d, returnAfterMinutes: v }))}
+              />
+            </View>
           </ScrollView>
 
-          {/* Footer */}
+          {/* Footer - 固定表示 */}
           <View style={styles.footer}>
             <Pressable
               onPress={handleSave}
-              style={[styles.footerButton, styles.footerPrimary]}
+              style={({ pressed }) => [
+                styles.saveButton,
+                pressed && styles.saveButtonPressed,
+              ]}
             >
-              <Text style={styles.footerPrimaryText}>{t('interruptModal.action.save')}</Text>
+              <Text style={styles.saveButtonText}>{t('interruptModal.action.save')}</Text>
             </Pressable>
           </View>
         </SafeAreaView>
@@ -193,77 +214,99 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f6fbff' },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#ffffff',
+  },
   header: {
-    paddingTop: 16,
+    paddingTop: 12,
     paddingHorizontal: 16,
     paddingBottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
   },
-  headerClose: { fontSize: 28 },
-  headerTitle: { fontSize: 16, fontWeight: '600' },
-  scrollContent: { paddingHorizontal: 16, paddingBottom: 20 },
-  caption: { marginTop: 10, marginBottom: 6, fontSize: 13, opacity: 0.7 },
-  row: { flexDirection: 'row', gap: 10 },
+  headerButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 4,
+  },
+  headerClose: { 
+    fontSize: 16, 
+    color: '#6b7280',
+    fontWeight: '600',
+  },
+  headerTitle: { 
+    textAlign: 'center',
+    fontSize: 18, 
+    fontWeight: '700', 
+    color: '#111',
+  },
+  headerSpacer: { 
+    width: 60,
+  },
+  body: {
+    flex: 1,
+  },
+  bodyContent: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 24,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: { 
+    fontSize: 16, 
+    fontWeight: '700', 
+    color: '#111',
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: 8,
+  },
   input: {
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-  },
-  smallButton: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    justifyContent: 'center',
-  },
-  smallButtonText: { fontWeight: '600' },
-  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
-  chip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 8 },
-  chipText: { fontSize: 13 },
-  stepperButton: {
-    borderWidth: 1,
+    borderColor: '#d1d5db',
     borderRadius: 12,
-    width: 48,
-    height: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#111',
+    backgroundColor: '#ffffff',
   },
-  stepperText: { fontSize: 20, fontWeight: '700' },
-  minutesBox: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'center',
-    width: 110,
-  },
-  minutesValue: { fontSize: 28, fontWeight: '700' },
-  minutesLabel: { marginLeft: 6, fontSize: 14, opacity: 0.7 },
-  quickRow: { flexDirection: 'row', gap: 10, marginTop: 12, flexWrap: 'wrap' },
-  quickButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
-  quickButtonText: { fontWeight: '600' },
   footer: {
-    padding: 16,
-    flexDirection: 'row',
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+    backgroundColor: '#ffffff',
   },
-  footerButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 14,
+  saveButton: {
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#2563eb',
+    shadowColor: '#2563eb',
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  footerSecondary: { borderWidth: 1 },
-  footerSecondaryText: { fontWeight: '600' },
-  footerPrimary: { borderWidth: 1 },
-  footerPrimaryText: { fontWeight: '700' },
-  body: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-    gap: 12,
-    },
-    sectionTitle: { marginTop: 4, marginBottom: 6, fontSize: 15, fontWeight: '600' },
-    });
+  saveButtonPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  saveButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+});

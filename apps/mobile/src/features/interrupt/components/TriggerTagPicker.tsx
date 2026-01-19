@@ -124,14 +124,14 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 6,
   },
   chip: {
     borderWidth: 1,
     borderColor: '#d0d7e2',
     borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#fff',
   },
   chipActive: {
