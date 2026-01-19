@@ -133,7 +133,7 @@ export default function HomeScreen() {
         onPressSettings={() => navigation.navigate('Settings')}
       />
 
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -150,14 +150,9 @@ export default function HomeScreen() {
           />
         )}
 
-        <InterruptButton onPress={handleInterruptButtonPress} />
-        {visible && (
-          <InterruptCaptureModal
-            visible={visible}
-            onCancel={() => setVisible(false)}
-            onSave={handleInterruptionSaved}
-          />
-        )}
+        <View style={styles.interruptButtonContainer}>
+          <InterruptButton onPress={handleInterruptButtonPress} />
+        </View>
 
         {latestOpen && (
           <LatestOpenCard
@@ -172,6 +167,14 @@ export default function HomeScreen() {
 
         {!latestOpen && !historyLoading && !hasAnyHistory && (
           <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
+        )}
+
+        {visible && (
+          <InterruptCaptureModal
+            visible={visible}
+            onCancel={() => setVisible(false)}
+            onSave={handleInterruptionSaved}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -200,10 +203,10 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerButton: { paddingHorizontal: 6 },
-  container: { 
-    flex: 1, 
-    backgroundColor: '#fcfcfc', 
-    alignItems: 'center', 
+  container: {
+    flex: 1,
+    backgroundColor: '#fcfcfc',
+    alignItems: 'center',
     justifyContent: 'flex-start',
     paddingHorizontal: 16,
   },
@@ -214,6 +217,12 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingTop: 8,
     alignItems: 'center',
+    gap: 16,
+  },
+  interruptButtonContainer: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 8,
   },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
