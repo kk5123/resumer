@@ -1,9 +1,7 @@
 import { AsyncStorageHelpers } from '../_asyncStorage/helpers';
 import { TriggerTagId, ISODateTime } from '@/domain/common.types';
 import { CustomTriggerTagRepository, CustomTriggerTag, TriggerTag } from '@/domain/triggerTag';
-import { storageKey } from '@/shared/constants/storage';
-
-const CUSTOM_TRIGGER_TAGS_KEY = storageKey('triggerTags:custom');
+import { STORAGE_KEY } from '@/shared/constants/storage';
 
 export class AsyncStorageCustomTriggerTagRepository implements CustomTriggerTagRepository {
   async upsertUsage(tags: TriggerTag[], usedAt: ISODateTime): Promise<void> {
@@ -57,10 +55,10 @@ export class AsyncStorageCustomTriggerTagRepository implements CustomTriggerTagR
    * ======================== */
 
   private loadAll(): Promise<Record<string, CustomTriggerTag>> {
-    return AsyncStorageHelpers.loadRecord<CustomTriggerTag>(CUSTOM_TRIGGER_TAGS_KEY);
+    return AsyncStorageHelpers.loadRecord<CustomTriggerTag>(STORAGE_KEY.triggerTagsCustom);
   }
 
   private saveAll(map: Record<string, CustomTriggerTag>): Promise<void> {
-    return AsyncStorageHelpers.saveRecord(CUSTOM_TRIGGER_TAGS_KEY, map);
+    return AsyncStorageHelpers.saveRecord(STORAGE_KEY.triggerTagsCustom, map);
   }
 }

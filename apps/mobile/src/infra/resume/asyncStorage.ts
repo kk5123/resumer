@@ -2,14 +2,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ResumeRepo } from '@/domain/resume/repo';
 import { ResumeEvent } from '@/domain/resume/types';
 import { InterruptionId } from '@/domain/common.types';
-import { storageKey } from '@/shared/constants/storage';
+import { STORAGE_KEY } from '@/shared/constants/storage';
 import { IndexManager } from '../_asyncStorage/IndexManager';
 
-const RESUME_EVENT_PREFIX = storageKey('resume:event');
-const RESUME_INDEX_PREFIX = storageKey('resume:index');
-
 export class AsyncStorageResumeRepository implements ResumeRepo {
-  private indexManager = new IndexManager(RESUME_INDEX_PREFIX, RESUME_EVENT_PREFIX);
+  private indexManager = new IndexManager(
+    STORAGE_KEY.resumeIndex,
+    STORAGE_KEY.resumeEvent);
 
   async save(event: ResumeEvent): Promise<void> {
     const id = event.id as string;
@@ -42,7 +41,7 @@ export class AsyncStorageResumeRepository implements ResumeRepo {
   async deleteAll(): Promise<void> {
     const allKeys = await AsyncStorage.getAllKeys();
     const keys = allKeys.filter(
-      (k) => k.startsWith(`${RESUME_EVENT_PREFIX}:`) || k.startsWith(`${RESUME_INDEX_PREFIX}:`)
+      (k) => k.startsWith(`${STORAGE_KEY.resumeEvent}:`) || k.startsWith(`${STORAGE_KEY.resumeIndex}:`)
     );
     if (keys.length) await AsyncStorage.multiRemove(keys);
   }

@@ -2,12 +2,12 @@ import { InterruptionId } from '@/domain/common.types';
 import { InterruptionEvent, InterruptionRepository, HistoryQuery } from '@/domain/interruption';
 
 import { IndexManager } from '../_asyncStorage/IndexManager';
-import { storageKey } from '@/shared/constants/storage';
+import { STORAGE_KEY } from '@/shared/constants/storage';
 
 export class AsyncStorageInterruptionRepository implements InterruptionRepository {
   private indexManager = new IndexManager(
-    storageKey('interruption:index'),
-    storageKey('interruption:event'));
+    STORAGE_KEY.interruptionIndex,
+    STORAGE_KEY.interruptionEvent);
 
   /* ========================
    * save

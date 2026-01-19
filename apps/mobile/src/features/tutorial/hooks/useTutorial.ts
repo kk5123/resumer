@@ -1,8 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
-import { storageKey } from '@/shared/constants/storage';
-
-const KEY = storageKey('tutorialSeen');
+import { STORAGE_KEY } from '@/shared/constants/storage';
 
 export function useTutorialGate() {
   const [showTutorial, setShowTutorial] = useState(false);
@@ -10,14 +8,14 @@ export function useTutorialGate() {
 
   useEffect(() => {
     (async () => {
-      const seen = await AsyncStorage.getItem(KEY);
+      const seen = await AsyncStorage.getItem(STORAGE_KEY.tutorialSeen);
       if (!seen) setShowTutorial(true);
       setReady(true);
     })();
   }, []);
 
   const complete = async () => {
-    await AsyncStorage.setItem(KEY, 'true');
+    await AsyncStorage.setItem(STORAGE_KEY.tutorialSeen, 'true');
     setShowTutorial(false);
   };
 
