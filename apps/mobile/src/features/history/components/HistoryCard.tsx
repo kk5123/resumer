@@ -3,6 +3,7 @@ import React from 'react';
 import { StyleSheet, Text, View, } from 'react-native';
 import { HistoryItem } from '../types';
 import { t } from '@/shared/i18n/strings';
+import { Card } from '@/shared/components';
 
 type Props = {
   item: HistoryItem;
@@ -25,11 +26,7 @@ export function HistoryCard({item}: Props) {
   const triggerTags = item.context.triggerTagIds ?? [];
 
   return (
-    <View style={[
-      styles.card,
-      item.resumeStatus === 'resumed' && styles.cardDone,
-      item.resumeStatus === 'snoozed' && styles.cardSnooze,
-    ]}>
+    <Card>
       <View style={styles.rowSpace}>
         <Text style={styles.title}>{item.occurredLocal}</Text>
         <Text style={[styles.badge, statusStyle]}>{statusLabel}</Text>
@@ -60,15 +57,11 @@ export function HistoryCard({item}: Props) {
       ) : (
         <Text style={[styles.meta, styles.tagEmpty]}>{t('history.tag.none')}</Text>
       )}
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  // 既存のスタイルをそのまま流用
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#e5e7eb', gap: 6 },
-  cardDone: { backgroundColor: '#f7fff9', borderColor: '#bbf7d0' },
-  cardSnooze: { backgroundColor: '#fffdf3', borderColor: '#fef3c7' },
   rowSpace: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 15, fontWeight: '700', color: '#111' },
   badge: { fontSize: 10, color: '#1f2937', backgroundColor: '#e5e7eb', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },

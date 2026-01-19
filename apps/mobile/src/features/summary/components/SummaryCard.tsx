@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { Card } from '@/shared/components';
 
 type SummaryProps = {
   dateLabel?: string;            // 例: "今日" / "2026/01/12"
@@ -20,7 +21,7 @@ export function SummaryCard({
   frequentTrigger
 }: SummaryProps) {
   return (
-    <View style={styles.card}>
+    <Card variant='muted'>
       <View style={styles.header}>
         <Text style={styles.title}>{dateLabel}のサマリ</Text>
         {weekRange && (
@@ -46,20 +47,11 @@ export function SummaryCard({
         <Text style={styles.label}>最も多いきっかけ</Text>
         <Text style={styles.value}>{frequentTrigger}</Text>
       </View>
-    </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    backgroundColor: '#f8fafc',
-    borderRadius: 14,
-    padding: 14,
-    gap: 8,
-  },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 15, fontWeight: '700', color: '#111' },
   subtitle: {

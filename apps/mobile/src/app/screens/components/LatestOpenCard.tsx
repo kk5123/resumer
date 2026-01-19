@@ -4,6 +4,7 @@ import { InterruptionEvent } from '@/domain/interruption';
 import { ResumeActionBar } from '@/features/resume';
 import { t } from '@/shared/i18n/strings';
 import { Ionicons } from '@expo/vector-icons';
+import { Card } from '@/shared/components';
 
 type Props = {
   latestOpen: InterruptionEvent & {
@@ -35,7 +36,7 @@ export function LatestOpenCard({
           <Text style={styles.sectionHeader}>{t('home.notice.hasOpen')}</Text>
         </View>
       </View>
-      <View style={[styles.latestCard, highlight && styles.latestCardHighlight]}>
+      <Card style={[...(highlight ? [styles.latestCardHighlight] : [])]}>
         <View style={styles.rowSpace}>
           <Text style={styles.cardTitle}>
             {t('home.label.scheduled')}: {latestOpen.scheduledLocal}
@@ -65,7 +66,7 @@ export function LatestOpenCard({
           onAbandon={onAbandon}
         />
 
-      </View>
+      </Card>
     </View>
   );
 }
