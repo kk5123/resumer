@@ -115,6 +115,7 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
 
       await interruptionRepo.save(event);
       onSave(event);
+      showToast(t('toast.save.success'), { type: 'success'});
     } catch (e) {
       console.error('[InterruptCaptureModal] save error', e);
       showToast(t('toast.save.failed'));
