@@ -66,6 +66,8 @@ export default function HomeScreen() {
 
   const [visible, setVisible] = useState(false);
 
+  const { summary, loading: summaryLoading, weekRangeLabel, reload: reloadSummary } = useWeekSummary(200);
+
   // 履歴を取得（ホームは最新1件のみ表示対象）
   const { items: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
   const latest = historyItems[0] ?? null;
@@ -74,7 +76,11 @@ export default function HomeScreen() {
 
   const [highlight, setHighlight] = useState<boolean>(false);
 
-  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen, reloadHistory);
+  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen,
+    () => {
+      reloadHistory();
+      reloadSummary();
+    });
 
   const { diffMs, reload: reloadResumeDiff } = useResumeDiff(latestOpen?.id);
   const resumeDiff = useMemo(() => {
@@ -124,7 +130,16 @@ export default function HomeScreen() {
         onPressSettings={() => navigation.navigate('Settings')}
       />
 
-      <SummaryCardContainer />
+      {!summaryLoading}
+<SummaryCard
+      dateLabel="今週"
+      weekRange={weekRangeLabel}
+      total={summary.total}
+      resumed={summary.resumed}
+      abandoned={summary.abandoned}
+      snoozed={summary.snoozed}
+      frequentTrigger={summary.frequentTrigger}
+    />
 
       <InterruptButton onPress={() => setVisible((v) => !v)} />
       {visible && (
