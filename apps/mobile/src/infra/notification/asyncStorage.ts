@@ -1,52 +1,44 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AsyncStorageHelpers } from '../_asyncStorage/helpers';
 import { InterruptionId } from '@/domain/common.types';
 import { NotificationBindingRepo } from '@/features/notification/repo';
 import { NotificationId } from '@/features/notification/types';
 import { storageKey } from '@/shared/constants/storage';
 
-const STORAGE_KEY = storageKey('notificationBindings'); // Record<string, string>
+const STORAGE_KEY = storageKey('notificationBindings');
 
-type RawMap = Record<string, string>;
-
-async function loadAll(): Promise<RawMap> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw) as RawMap;
-  } catch {
-    return {};
-  }
+async function loadMap() {
+  return AsyncStorageHelpers.loadRecord<string>(STORAGE_KEY);
 }
 
-async function saveAll(map: RawMap): Promise<void> {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+async function saveMap(map: Record<string, string>) {
+  await AsyncStorageHelpers.saveRecord(STORAGE_KEY, map);
 }
 
 export class AsyncStorageNotificationBindingRepo implements NotificationBindingRepo {
   async save(interruptionId: InterruptionId, notificationId: NotificationId): Promise<void> {
-    const map = await loadAll();
-    map[interruptionId as unknown as string] = notificationId as unknown as string;
-    await saveAll(map);
+    const map = await loadMap();
+    map[interruptionId as string] = notificationId as string;
+    await saveMap(map);
   }
 
   async find(interruptionId: InterruptionId): Promise<NotificationId | null> {
-    const map = await loadAll();
-    const raw = map[interruptionId as unknown as string];
-    return raw ? (raw as unknown as NotificationId) : null;
+    const map = await loadMap();
+    const raw = map[interruptionId as string];
+    return raw ? (raw as NotificationId) : null;
   }
 
   async delete(interruptionId: InterruptionId): Promise<void> {
-    const map = await loadAll();
-    delete map[interruptionId as unknown as string];
-    await saveAll(map);
+    const map = await loadMap();
+    delete map[interruptionId as string];
+    await saveMap(map);
   }
 
   async deleteAll(): Promise<void> {
-    await saveAll({});
+    await saveMap({});
   }
 
   async listAll(): Promise<NotificationId[]> {
-    const map = await loadAll();
+    const map = await loadMap();
     return Object.values(map) as NotificationId[];
   }
 }

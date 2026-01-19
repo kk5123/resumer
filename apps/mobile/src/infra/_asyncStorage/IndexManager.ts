@@ -1,43 +1,45 @@
-// infra/common/IndexedRepository.ts
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageHelpers } from './helpers';
 
 export class IndexManager {
   constructor(
-    private indexKey: string,
+    private indexKeyPrefix: string,
     private entityKeyPrefix: string
   ) {}
-  
-  async loadIndex(): Promise<string[]> {
-    return AsyncStorageHelpers.loadArray<string>(this.indexKey);
+
+  private indexKey(suffix: string = ''): string {
+    return suffix ? `${this.indexKeyPrefix}:${suffix}` : this.indexKeyPrefix;
   }
-  
-  async saveIndex(ids: string[]): Promise<void> {
-    await AsyncStorageHelpers.saveArray(this.indexKey, ids);
-  }
-  
-  async addToIndex(id: string): Promise<void> {
-    const index = await this.loadIndex();
-    if (!index.includes(id)) {
-      index.push(id);
-      await this.saveIndex(index);
-    }
-  }
-  
-  getEntityKey(id: string): string {
+
+  private entityKey(id: string): string {
     return `${this.entityKeyPrefix}:${id}`;
   }
-  
+
+  async loadIndex(suffix: string = ''): Promise<string[]> {
+    return AsyncStorageHelpers.loadArray<string>(this.indexKey(suffix));
+  }
+
+  async saveIndex(ids: string[], suffix: string = ''): Promise<void> {
+    await AsyncStorageHelpers.saveArray(this.indexKey(suffix), ids);
+  }
+
+  async addToIndex(id: string, suffix: string = ''): Promise<void> {
+    const index = await this.loadIndex(suffix);
+    if (!index.includes(id)) {
+      index.push(id);
+      await this.saveIndex(index, suffix);
+    }
+  }
+
   async loadEntity<T>(id: string): Promise<T | null> {
-    return AsyncStorageHelpers.loadObject<T>(this.getEntityKey(id));
+    return AsyncStorageHelpers.loadObject<T>(this.entityKey(id));
   }
-  
+
   async saveEntity<T>(id: string, entity: T): Promise<void> {
-    await AsyncStorageHelpers.saveObject(this.getEntityKey(id), entity);
+    await AsyncStorageHelpers.saveObject(this.entityKey(id), entity);
   }
-  
+
   async deleteEntity(id: string): Promise<void> {
-    const key = this.getEntityKey(id);
-    await AsyncStorage.removeItem(key);
+    await AsyncStorage.removeItem(this.entityKey(id));
   }
 }

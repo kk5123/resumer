@@ -1,27 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AsyncStorageHelpers } from '../_asyncStorage/helpers';
 import { TriggerTagId, ISODateTime } from '@/domain/common.types';
 import { CustomTriggerTagRepository, CustomTriggerTag, TriggerTag } from '@/domain/triggerTag';
 import { storageKey } from '@/shared/constants/storage';
 
 const CUSTOM_TRIGGER_TAGS_KEY = storageKey('triggerTags:custom');
 
-/**
- * AsyncStorage 実装:
- * - 1キーに JSON で `Record<string, CustomTriggerTag>` を保存
- * - key は TriggerTagId の中身 (string) をそのまま使う
- */
-export class AsyncStorageCustomTriggerTagRepository
-  implements CustomTriggerTagRepository
-{
-  public async upsertUsage(
-    tags: TriggerTag[],
-    usedAt: ISODateTime
-  ): Promise<void> {
+export class AsyncStorageCustomTriggerTagRepository implements CustomTriggerTagRepository {
+  async upsertUsage(tags: TriggerTag[], usedAt: ISODateTime): Promise<void> {
     if (tags.length === 0) return;
 
     const map = await this.loadAll();
-    const usedTime = usedAt;
-
     for (const tag of tags) {
       const key = tag.id as unknown as string;
       const existing = map[key];
@@ -29,66 +17,50 @@ export class AsyncStorageCustomTriggerTagRepository
       if (existing) {
         map[key] = {
           ...existing,
-          lastUsedAt: usedTime,
+          lastUsedAt: usedAt,
           usageCount: existing.usageCount + 1,
         };
       } else {
-        const nowTag: CustomTriggerTag = {
+        map[key] = {
           id: tag.id,
           label: tag.label,
-          createdAt: usedTime,
-          lastUsedAt: usedTime,
+          createdAt: usedAt,
+          lastUsedAt: usedAt,
           usageCount: 1,
         };
-        map[key] = nowTag;
       }
     }
 
     await this.saveAll(map);
   }
 
-  public async listTopUsed(limit: number): Promise<CustomTriggerTag[]> {
+  async listTopUsed(limit: number): Promise<CustomTriggerTag[]> {
     if (limit <= 0) return [];
 
     const map = await this.loadAll();
-    const all = Object.values(map);
-
-    return all
+    return Object.values(map)
       .sort((a, b) => b.usageCount - a.usageCount)
       .slice(0, limit);
   }
 
-  public async findById(id: TriggerTagId): Promise<CustomTriggerTag | null> {
+  async findById(id: TriggerTagId): Promise<CustomTriggerTag | null> {
     const map = await this.loadAll();
-    const hit = map[id as unknown as string];
-    return hit ?? null;
+    return map[id as unknown as string] ?? null;
   }
 
-  public async deleteAll(): Promise<void> {
-    this.saveAll({});
+  async deleteAll(): Promise<void> {
+    await this.saveAll({});
   }
 
   /* ========================
    * private helpers
    * ======================== */
 
-  private async loadAll(): Promise<Record<string, CustomTriggerTag>> {
-    const raw = await AsyncStorage.getItem(CUSTOM_TRIGGER_TAGS_KEY);
-    if (!raw) return {};
-    try {
-      const parsed = JSON.parse(raw) as Record<string, CustomTriggerTag>;
-      // ここで必要なら schema チェックや補正をしてもよい
-      return parsed;
-    } catch {
-      // 破損していたら、ひとまず空として扱う
-      return {};
-    }
+  private loadAll(): Promise<Record<string, CustomTriggerTag>> {
+    return AsyncStorageHelpers.loadRecord<CustomTriggerTag>(CUSTOM_TRIGGER_TAGS_KEY);
   }
 
-  private async saveAll(
-    map: Record<string, CustomTriggerTag>
-  ): Promise<void> {
-    const json = JSON.stringify(map);
-    await AsyncStorage.setItem(CUSTOM_TRIGGER_TAGS_KEY, json);
+  private saveAll(map: Record<string, CustomTriggerTag>): Promise<void> {
+    return AsyncStorageHelpers.saveRecord(CUSTOM_TRIGGER_TAGS_KEY, map);
   }
 }
