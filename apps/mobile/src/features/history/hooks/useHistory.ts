@@ -4,6 +4,7 @@ import { getInterruptPorts } from '@/features/interrupt/ports';
 import { getResumePorts } from '@/features/resume/ports';
 import { formatLocalShort } from '@/shared/utils/date';
 import { HistoryItem } from '../types';
+import { DateHelpers } from '@/shared/utils/date';
 
 type Options = {
   from?: Date;
@@ -21,7 +22,7 @@ export function useHistory(options: Options = {}) {
   const { resumeRepo } = getResumePorts();
 
   const query = useMemo(
-    () => ({ from: from?.toISOString(), to: to?.toISOString(), limit}),
+    () => ({ from: from?.toISOString(), to: to?.toISOString(), limit }),
     [from, to, limit]
   );
 
@@ -35,9 +36,7 @@ export function useHistory(options: Options = {}) {
           const latestResume = await resumeRepo.findLatestByInterruptionId(ev.id);
           const scheduled =
             ev.context.returnAfterMinutes != null
-              ? new Date(
-                  new Date(ev.occurredAt).getTime() + ev.context.returnAfterMinutes * 60_000
-                ).toISOString()
+              ? DateHelpers.addMinutes(ev.occurredAt, ev.context.returnAfterMinutes).toISOString()
               : null;
           return {
             ...ev,
@@ -62,7 +61,7 @@ export function useHistory(options: Options = {}) {
   useFocusEffect(
     useCallback(() => {
       reload();
-      return () => {};
+      return () => { };
     }, [reload])
   );
 

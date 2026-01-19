@@ -5,6 +5,7 @@ import { TriggerTagId } from '@/domain/common.types';
 import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
 import { getInterruptPorts } from '@/features/interrupt/ports';
 import { useAsyncEffect } from '@/shared/hooks';
+import { DateHelpers } from '@/shared/utils/date';
 
 export type FrequentTrigger = { tagId: TriggerTagId; count: number };
 
@@ -23,14 +24,12 @@ async function labelFor(id: TriggerTagId): Promise<string> {
 }
 
 export function useTodaySummary(limit = 200) {
-  const startOfToday = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  }, []);
-
   const { items, loading, error, reload } = useHistory({ limit });
   const [frequentLabel, setFrequentLabel] = useState<string>('-');
+
+  const startOfToday = useMemo(() => {
+    return DateHelpers.startOfDay().getTime();
+  }, []);
 
   const todayItems = useMemo(
     () => items.filter((it) => new Date(it.occurredAt).getTime() >= startOfToday),

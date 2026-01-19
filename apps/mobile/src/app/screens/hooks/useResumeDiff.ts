@@ -3,6 +3,7 @@ import { InterruptionId } from '@/domain/common.types';
 import { getResumePorts } from '@/features/resume/ports';
 import { getInterruptPorts } from '@/features/interrupt/ports';
 import { useAsyncEffect } from '@/shared/hooks';
+import { DateHelpers } from '@/shared/utils/date';
 
 export function useResumeDiff(
   interruptionId: InterruptionId | null | undefined
@@ -27,12 +28,10 @@ export function useResumeDiff(
       if (latestResumeEvent?.status === 'snoozed') {
         const snoozeMinutes = latestResumeEvent.snoozeMinutes ?? 5;
 
-        const resumedAtTime = new Date(latestResumeEvent.resumedAt).getTime();
-        const snoozeMs = snoozeMinutes * 60 * 1000 - 1;
-        const effectiveScheduledAt = new Date(resumedAtTime + snoozeMs);
-        if (Number.isNaN(effectiveScheduledAt.getTime())) {
-          return null;
-        }
+        const effectiveScheduledAt = DateHelpers.addMinutes(
+          latestResumeEvent.resumedAt,
+          snoozeMinutes
+        );
 
         setScheduledAt(effectiveScheduledAt);
       }
