@@ -13,13 +13,13 @@ import { useHistory } from '@/features/history';
 
 import { RootStackParamList } from '../navigation/RootNavigator';
 
-import { SummaryCard, useTodaySummary } from '@/features/summary';
+import { SummaryCard, useWeekSummary } from '@/features/summary';
 
 import { upsertResumeNotification, useNotificationResponse } from '@/features/notification';
 import { InterruptionEvent } from '@/domain/interruption';
 import { LatestOpenCard } from './components/LatestOpenCard';
-import { useWeekSummary } from '@/features/summary/hooks/useWeekSummary';
 import { formatDiffHuman } from '@/shared/utils/date';
+import { ScrollView } from 'react-native';
 
 type HeaderActions = {
   onPressHistory: () => void;
@@ -30,8 +30,8 @@ function Header({ onPressHistory, onPressSettings }: HeaderActions) {
   return (
     <View style={styles.header}>
       <View style={styles.headerTitleContainer}>
-        <Image 
-          source={require('../../../assets/icon.png')} 
+        <Image
+          source={require('../../../assets/icon.png')}
           style={styles.headerIcon}
           resizeMode="contain"
         />
@@ -133,41 +133,47 @@ export default function HomeScreen() {
         onPressSettings={() => navigation.navigate('Settings')}
       />
 
-      {!summaryLoading}
-      <SummaryCard
-        dateLabel="今週"
-        weekRange={weekRangeLabel}
-        total={summary.total}
-        resumed={summary.resumed}
-        abandoned={summary.abandoned}
-        snoozed={summary.snoozed}
-        frequentTrigger={summary.frequentTrigger}
-      />
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {!summaryLoading && (
+          <SummaryCard
+            dateLabel="今週"
+            weekRange={weekRangeLabel}
+            total={summary.total}
+            resumed={summary.resumed}
+            abandoned={summary.abandoned}
+            snoozed={summary.snoozed}
+            frequentTrigger={summary.frequentTrigger}
+          />
+        )}
 
-      <InterruptButton onPress={handleInterruptButtonPress} />
-      {visible && (
-        <InterruptCaptureModal
-          visible={visible}
-          onCancel={() => setVisible(false)}
-          onSave={handleInterruptionSaved}
-        />
-      )}
+        <InterruptButton onPress={handleInterruptButtonPress} />
+        {visible && (
+          <InterruptCaptureModal
+            visible={visible}
+            onCancel={() => setVisible(false)}
+            onSave={handleInterruptionSaved}
+          />
+        )}
 
-      {latestOpen && (
-        <LatestOpenCard
-          latestOpen={latestOpen}
-          highlight={highlight}
-          resumeDiff={resumeDiff}
-          onResume={markResumed}
-          onSnooze5={async () => { await markSnoozed(); reloadResumeDiff(); }}
-          onAbandon={markAbandoned}
-        />
-      )}
+        {latestOpen && (
+          <LatestOpenCard
+            latestOpen={latestOpen}
+            highlight={highlight}
+            resumeDiff={resumeDiff}
+            onResume={markResumed}
+            onSnooze5={async () => { await markSnoozed(); reloadResumeDiff(); }}
+            onAbandon={markAbandoned}
+          />
+        )}
 
-      {!latestOpen && !historyLoading && !hasAnyHistory && (
-        <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
-      )}
-
+        {!latestOpen && !historyLoading && !hasAnyHistory && (
+          <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -194,7 +200,21 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerButton: { paddingHorizontal: 6 },
-  container: { flex: 1, backgroundColor: '#fcfcfc', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fcfcfc', 
+    alignItems: 'center', 
+    justifyContent: 'flex-start',
+    paddingHorizontal: 16,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    paddingTop: 8,
+    alignItems: 'center',
+  },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   label: { fontSize: 13, color: '#1f2937' },

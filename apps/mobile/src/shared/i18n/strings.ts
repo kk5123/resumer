@@ -72,7 +72,7 @@ const STRINGS: Record<Lang, Record<Key, string>> = {
     'home.toast.resume': '作業の再開を記録しました！',
     'home.toast.snooze': '中断を5分延長しました。',
     'home.toast.abandon': '作業を終了しました',
-    'home.notice.hasOpen': '再開待ちの作業があります',
+    'home.notice.hasOpen': '前回の中断データがあります',
     'history.status.resumed': '再開済',
     'history.status.onbreak': '再開予定',
     'history.status.abandoned': '終了',
