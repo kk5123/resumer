@@ -1,3 +1,4 @@
+import { createPorts } from '@/shared/ports';
 import { InterruptionRepository } from '@/domain/interruption';
 import { CustomTriggerTagRepository } from '@/domain/triggerTag';
 
@@ -6,14 +7,6 @@ export type InterruptPorts = {
   customTriggerTagRepo: CustomTriggerTagRepository;
 };
 
-let interruptPorts: InterruptPorts | undefined;
-
-export function setInterruptPorts(value: InterruptPorts) {
-  interruptPorts = value;
-  console.log('[setInterruptPorts] called')
-}
-
-export function getInterruptPorts(): InterruptPorts {
-  if (!interruptPorts) throw new Error('InterruptPorts not initialized');
-  return interruptPorts;
-}
+const { set, get } = createPorts<InterruptPorts>('InterruptPorts');
+export const setInterruptPorts = set;
+export const getInterruptPorts = get;

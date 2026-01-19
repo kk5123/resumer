@@ -1,17 +1,10 @@
+import { createPorts } from '@/shared/ports';
 import { SettingsRepo } from './repo';
 
 export type SettingsPorts = {
   settingsRepo: SettingsRepo;
 }
 
-let settingsPorts: SettingsPorts | undefined;
-
-export function setSettingsPorts(value: SettingsPorts) {
-  settingsPorts = value;
-  console.log('[setSettingsPorts] called')
-}
-
-export function getSettingsPorts(): SettingsPorts {
-  if (!settingsPorts) throw new Error('SettingsPorts not initialized');
-  return settingsPorts;
-}
+const { set, get } = createPorts<SettingsPorts>('SettingsPorts');
+export const setSettingsPorts = set;
+export const getSettingsPorts = get;
