@@ -10,17 +10,15 @@ import { DebugPanel } from './debug/DebugPanel';
 import { useTutorialGate, TutorialModal } from '@/features/tutorial';
 import { STORAGE_KEY_PREFIX } from '@/shared/constants/storage';
 
+import { useAsyncEffect } from '@/shared/hooks';
+
 export default function Root() {
   const [ready, setReady] = useState(false);
   const { ready: tutorialReady, showTutorial, complete } = useTutorialGate();
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      await bootstrap();
-      if (mounted) setReady(true);
-    })();
-    return () => { mounted = false; }
+  useAsyncEffect(async () => {
+    await bootstrap();
+    setReady(true);
   }, []);
 
   if (!ready || !tutorialReady) return null;

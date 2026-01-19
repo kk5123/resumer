@@ -20,6 +20,8 @@ import { useToast } from '@/shared/components/ToastProvider';
 
 import { MinutesSelector } from './MinutesSelector';
 
+import { useAsyncEffect } from '@/shared/hooks';
+
 export type InterruptCaptureModalProps = {
   visible: boolean;
   onCancel: () => void;
@@ -44,38 +46,27 @@ export function InterruptCaptureModal(props: InterruptCaptureModalProps) {
   const { showToast } = useToast();
 
   useEffect(() => {
-    let mounted = true;
-
     if (visible) {
       setOccurredAt(new Date().toISOString());
-
-      (async () => {
-        const { customTriggerTagRepo } = getInterruptPorts();
-        const tags = await customTriggerTagRepo.listTopUsed(10);
-        if (mounted) setInitialCustomTags(tags);
-      })();
     } else {
       setOccurredAt(null);
     }
-    return () => {
-      mounted = false;
-    };
   }, [visible]);
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { customTriggerTagRepo } = getInterruptPorts();
-      const tags = await customTriggerTagRepo.listTopUsed(10);
-      if (mounted) {
-        setInitialCustomTags(tags);
-        setReady(true);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
+  
+  useAsyncEffect(async () => {
+    const { customTriggerTagRepo } = getInterruptPorts();
+    const tags = await customTriggerTagRepo.listTopUsed(10);
+    setInitialCustomTags(tags);
+    setReady(true);
   }, []);
+  
+  // visible が true になった時にもタグを再読み込み
+  useAsyncEffect(async () => {
+    if (!visible) return;
+    const { customTriggerTagRepo } = getInterruptPorts();
+    const tags = await customTriggerTagRepo.listTopUsed(10);
+    setInitialCustomTags(tags);
+  }, [visible]);
 
   const [draft, setDraft] = useState<InterruptionDraft>({
     reasonText: '',

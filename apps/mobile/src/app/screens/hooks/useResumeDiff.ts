@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { InterruptionId } from '@/domain/common.types';
 import { getResumePorts } from '@/features/resume/ports';
 import { getInterruptPorts } from '@/features/interrupt/ports';
+import { useAsyncEffect } from '@/shared/hooks';
 
 export function useResumeDiff(
   interruptionId: InterruptionId | null | undefined
@@ -25,14 +26,14 @@ export function useResumeDiff(
       const latestResumeEvent = await resumeRepo.findLatestByInterruptionId(interruptionId);
       if (latestResumeEvent?.status === 'snoozed') {
         const snoozeMinutes = latestResumeEvent.snoozeMinutes ?? 5;
-   
+
         const resumedAtTime = new Date(latestResumeEvent.resumedAt).getTime();
         const snoozeMs = snoozeMinutes * 60 * 1000 - 1;
         const effectiveScheduledAt = new Date(resumedAtTime + snoozeMs);
         if (Number.isNaN(effectiveScheduledAt.getTime())) {
           return null;
         }
-    
+
         setScheduledAt(effectiveScheduledAt);
       }
     } catch (e) {
@@ -41,27 +42,23 @@ export function useResumeDiff(
   }, [interruptionId]);
 
   // 初回のみInterruptionEventを取得
-  useEffect(() => {
+  useAsyncEffect(async () => {
     if (!interruptionId) {
       setScheduledAt(null);
       return;
     }
-
-    (async () => {
-      try {
-        const { interruptionRepo } = getInterruptPorts();
-        const interruptionEvent = await interruptionRepo.findById(interruptionId);
-        setScheduledAt(interruptionEvent?.scheduledResumeAt
-          ? new Date(interruptionEvent.scheduledResumeAt)
-          : null);
-  
-        updateScheduledAt();
-      } catch (e) {
-        console.error('[useResumeDiff] failed to load interruption event', e);
-        setScheduledAt(null);
-      }
-    })();
-  }, [interruptionId]);
+    try {
+      const { interruptionRepo } = getInterruptPorts();
+      const interruptionEvent = await interruptionRepo.findById(interruptionId);
+      setScheduledAt(interruptionEvent?.scheduledResumeAt
+        ? new Date(interruptionEvent.scheduledResumeAt)
+        : null);
+      updateScheduledAt();
+    } catch (e) {
+      console.error('[useResumeDiff] failed to load interruption event', e);
+      setScheduledAt(null);
+    }
+  }, [interruptionId, updateScheduledAt]);
 
   const diffMs = useMemo(() => {
     if (!scheduledAt) {

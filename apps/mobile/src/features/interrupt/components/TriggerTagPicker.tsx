@@ -2,11 +2,8 @@ import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { t } from '@/shared/i18n/strings';
 
-import { CustomTriggerTagRepository, generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
+import { generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
 import { TriggerTagId } from '@/domain/common.types';
-
-import { getInterruptPorts } from '../ports';
-import { useEffect } from 'react';
 
 export type TriggerTagPickerHandle = {
   getSelection: () => { selectedIds: TriggerTagId[]; customTags: TriggerTag[] };

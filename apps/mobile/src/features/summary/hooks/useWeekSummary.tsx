@@ -5,6 +5,7 @@ import { TriggerTagId } from '@/domain/common.types';
 import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
 import { getInterruptPorts } from '@/features/interrupt/ports';
 import { useSettings } from '@/features/settings/hooks/useSettings';
+import { useAsyncEffect } from '@/shared/hooks';
 
 export type FrequentTrigger = { tagId: TriggerTagId; count: number };
 
@@ -136,17 +137,13 @@ export function useWeekSummary(limit = 200) {
   }, [weekItems]);
 
   // frequentTriggerからラベルを取得
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!frequentTrigger) { 
-        setFrequentLabel('-'); 
-        return; 
-      }
-      const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
-      if (mounted) setFrequentLabel(`${label}     ${frequentTrigger.count}`);
-    });
-    return () => { mounted = false; };
+  useAsyncEffect(async () => {
+    if (!frequentTrigger) {
+      setFrequentLabel('-');
+      return;
+    }
+    const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
+    setFrequentLabel(`${label}     ${frequentTrigger.count}`);
   }, [frequentTrigger]);
 
   const summary = useMemo(() => {
