@@ -78,12 +78,32 @@ export function useWeekSummary(limit = 200) {
   const { items, loading, error, reload } = useHistory({ limit });
   const [frequentLabel, setFrequentLabel] = useState<string>('-');
 
+  // 最新1件がオープンかどうかを判定
+  const latestOpenItem = useMemo(() => {
+    if (items.length === 0) return null;
+    const latest = items[0];
+    const isOpen = latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed';
+    return isOpen ? latest : null;
+  }, [items]);
+
   const weekItems = useMemo(
-    () => items.filter((it) => {
-      const occurred = new Date(it.occurredAt).getTime();
-      return occurred >= startOfWeek && occurred <= endOfWeek;
-    }),
-    [items, startOfWeek, endOfWeek]
+    () => {
+      const filtered = items.filter((it) => {
+        const occurred = new Date(it.occurredAt).getTime();
+        return occurred >= startOfWeek && occurred <= endOfWeek;
+      });
+
+      // 最新1件がオープンで、かつ週の範囲内にある場合は除外
+      if (latestOpenItem && filtered.length > 0) {
+        const latestInWeek = filtered[0];
+        if (latestInWeek.id === latestOpenItem.id) {
+          return filtered.slice(1);
+        }
+      }
+
+      return filtered;
+    },
+    [items, startOfWeek, endOfWeek, latestOpenItem]
   );
 
   // frequentTriggerの計算ロジックを追加
@@ -125,7 +145,7 @@ export function useWeekSummary(limit = 200) {
       }
       const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
       if (mounted) setFrequentLabel(`${label}     ${frequentTrigger.count}`);
-    })();
+    });
     return () => { mounted = false; };
   }, [frequentTrigger]);
 
