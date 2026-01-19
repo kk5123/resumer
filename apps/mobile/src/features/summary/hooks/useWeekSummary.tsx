@@ -86,7 +86,48 @@ export function useWeekSummary(limit = 200) {
     [items, startOfWeek, endOfWeek]
   );
 
-  // ... 既存のfrequentTriggerロジック ...
+  // frequentTriggerの計算ロジックを追加
+  const frequentTrigger = useMemo<FrequentTrigger | null>(() => {
+    const stats = new Map<string, { count: number; lastUsedAt: number }>();
+  
+    for (const it of weekItems) {
+      const lastUsedAt = new Date(it.occurredAt).getTime();
+      (it.context.triggerTagIds ?? []).forEach((tagId) => {
+        const key = tagId as string;
+        const prev = stats.get(key);
+        if (!prev) {
+          stats.set(key, { count: 1, lastUsedAt });
+        } else {
+          stats.set(key, {
+            count: prev.count + 1,
+            lastUsedAt: Math.max(prev.lastUsedAt, lastUsedAt),
+          });
+        }
+      });
+    }
+  
+    if (stats.size === 0) return null;
+  
+    const best = Array.from(stats.entries())
+      .map(([tagId, v]) => ({ tagId: tagId as TriggerTagId, count: v.count, lastUsedAt: v.lastUsedAt }))
+      .sort((a, b) => (b.count !== a.count ? b.count - a.count : b.lastUsedAt - a.lastUsedAt))[0];
+  
+    return { tagId: best.tagId, count: best.count };
+  }, [weekItems]);
+
+  // frequentTriggerからラベルを取得
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      if (!frequentTrigger) { 
+        setFrequentLabel('-'); 
+        return; 
+      }
+      const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
+      if (mounted) setFrequentLabel(`${label}     ${frequentTrigger.count}`);
+    })();
+    return () => { mounted = false; };
+  }, [frequentTrigger]);
 
   const summary = useMemo(() => {
     const resumed = weekItems.filter((it) => it.resumeStatus === 'resumed').length;
