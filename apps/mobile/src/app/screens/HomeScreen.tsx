@@ -7,7 +7,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
 import { t } from '@/shared/i18n/strings';
-import { formatDiffHuman } from '@/shared/utils/date';
+import { useResumeDiff } from './hooks/useResumeDiff';
 import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
 import { useHistory } from '@/features/history';
 
@@ -19,6 +19,7 @@ import { upsertResumeNotification, useNotificationResponse } from '@/features/no
 import { InterruptionEvent } from '@/domain/interruption';
 import { LatestOpenCard } from './components/LatestOpenCard';
 import { useWeekSummary } from '@/features/summary/hooks/useWeekSummary';
+import { formatDiffHuman } from '@/shared/utils/date';
 
 type HeaderActions = {
   onPressHistory: () => void;
@@ -75,20 +76,16 @@ export default function HomeScreen() {
 
   const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen, reloadHistory);
 
-  // 差分表示用に現在時刻を更新（1秒ごと）
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const tId = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(tId);
-  }, []);
-
+  const { diffMs, reload: reloadResumeDiff } = useResumeDiff(latestOpen?.id);
   const resumeDiff = useMemo(() => {
-    if (!latestOpen?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
-    const scheduled = new Date(latestOpen.scheduledResumeAt).getTime();
-    if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
-    const diffMs = now - scheduled;
-    return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
-  }, [latestOpen?.scheduledResumeAt, now]);
+    if (diffMs === null) {
+      return { text: t('home.label.scheduledUnset'), isLate: false };
+    }
+    return {
+      text: formatDiffHuman(diffMs, { includeSeconds: true }),
+      isLate: diffMs > 0,
+    };
+  }, [diffMs]);
 
   const hideHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -144,7 +141,7 @@ export default function HomeScreen() {
           highlight={highlight}
           resumeDiff={resumeDiff}
           onResume={markResumed}
-          onSnooze5={markSnoozed}
+          onSnooze5={async () => { await markSnoozed(); reloadResumeDiff(); }}
           onAbandon={markAbandoned}
         />
       )}

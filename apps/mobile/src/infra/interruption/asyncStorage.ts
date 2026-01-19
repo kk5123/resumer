@@ -6,6 +6,7 @@ import {
   InterruptionRepository,
   HistoryQuery
 } from '@/domain/interruption';
+import { InterruptionId } from "@/domain/common.types";
 
 const INTERRUPTION_INDEX_KEY = storageKey('interruption:index');
 const INTERRUPTION_EVENT_KEY = (id: string) => storageKey(`interruption:event:${id}`);
@@ -75,6 +76,10 @@ export class AsyncStorageInterruptionRepository
     return events.filter(
       (e): e is InterruptionEvent => e != null
     );
+  }
+
+  async findById(id: InterruptionId): Promise<InterruptionEvent | null> {
+    return this.loadEvent(id);
   }
 
   async listByPeriod(params: HistoryQuery): Promise<InterruptionEvent[]> {

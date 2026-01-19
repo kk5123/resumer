@@ -24,7 +24,7 @@ export function LatestOpenCard({
   onSnooze5,
   onAbandon,
 }: Props) {
-  const hasSchedule = latestOpen.scheduledResumeAt != null;
+  const showSnooze = resumeDiff.isLate;
 
   return (
     <ScrollView style={styles.recentSection}>
@@ -55,7 +55,7 @@ export function LatestOpenCard({
         </View>
 
         <ResumeActionBar
-          showSnooze={hasSchedule}
+          showSnooze={showSnooze}
           onResume={onResume}
           onSnooze={onSnooze5}
           onAbandon={onAbandon}
