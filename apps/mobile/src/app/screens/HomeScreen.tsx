@@ -105,8 +105,6 @@ export default function HomeScreen() {
     if (e.scheduledResumeAt)
       upsertResumeNotification({
         interruptionId: e.id,
-        title: t('app.title'),
-        body: e.context.firstStepText || t('notification.fallback'),
         triggerDate: new Date(e.scheduledResumeAt)
       });
   };

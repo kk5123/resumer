@@ -29,3 +29,9 @@ export async function scheduleResumeNotification(
 export async function cancelNotification(id: NotificationId): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(id);
 }
+
+export async function getScheduledNotificationContent(id: NotificationId) {
+  const all = await Notifications.getAllScheduledNotificationsAsync();
+  const hit = all.find((n) => n.identifier === id);
+  return hit?.content ?? null;
+}
