@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -29,7 +29,14 @@ type HeaderActions = {
 function Header({ onPressHistory, onPressSettings }: HeaderActions) {
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>{t('app.title')}</Text>
+      <View style={styles.headerTitleContainer}>
+        <Image 
+          source={require('../../../assets/icon.png')} 
+          style={styles.headerIcon}
+          resizeMode="contain"
+        />
+        <Text style={styles.headerTitle}>{t('app.title')}</Text>
+      </View>
       <View style={styles.headerActions}>
         <TouchableOpacity onPress={onPressHistory} style={styles.headerButton} hitSlop={8}>
           <Ionicons name="time-outline" size={22} color="#1f2937" />
@@ -39,25 +46,6 @@ function Header({ onPressHistory, onPressSettings }: HeaderActions) {
         </TouchableOpacity>
       </View>
     </View>
-  );
-}
-
-function SummaryCardContainer() {
-  const { summary, loading, weekRangeLabel } = useWeekSummary(200);
-
-  if (loading)
-    return null;
-
-  return (
-    <SummaryCard
-      dateLabel="今週"
-      weekRange={weekRangeLabel}
-      total={summary.total}
-      resumed={summary.resumed}
-      abandoned={summary.abandoned}
-      snoozed={summary.snoozed}
-      frequentTrigger={summary.frequentTrigger}
-    />
   );
 }
 
@@ -193,10 +181,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIcon: {
+    width: 60,
+    height: 60,
+    marginLeft: -20,
+  },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   headerButton: { paddingHorizontal: 6 },
-  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
+  container: { flex: 1, backgroundColor: '#fcfcfc', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   label: { fontSize: 13, color: '#1f2937' },
