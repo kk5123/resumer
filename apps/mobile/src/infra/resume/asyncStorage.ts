@@ -13,8 +13,19 @@ export class AsyncStorageResumeRepository implements ResumeRepo {
     const id = event.id as unknown as string;
     const interruptionId = event.interruptionId as unknown as string;
 
+    const plainEvent: ResumeEvent = {
+      id: event.id,
+      interruptionId: event.interruptionId,
+      resumedAt: event.resumedAt,
+      source: event.source,
+      status: event.status,
+      snoozeMinutes: event.snoozeMinutes,
+      // metadataが循環参照を持つ可能性があるため、安全にシリアライズ
+      metadata: event.metadata ? JSON.parse(JSON.stringify(event.metadata)) : undefined,
+    };
+
     // イベント本体保存
-    await AsyncStorage.setItem(RESUME_EVENT_KEY(id), JSON.stringify(event));
+    await AsyncStorage.setItem(RESUME_EVENT_KEY(id), JSON.stringify(plainEvent));
 
     // 紐づく中断のインデックス更新（重複チェック）
     const index = await this.loadIndex(interruptionId);

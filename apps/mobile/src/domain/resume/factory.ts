@@ -8,9 +8,8 @@ export function generateResumeId(): ResumeId {
 
 export function createResumeEvent(params: {
   interruptionId: ResumeEvent['interruptionId'];
-  resumedAt?: ISODateTime;
+  status: ResumeStatus;
   source?: ResumeSource;
-  status?: ResumeStatus;
   snoozeMinutes?: number;
   metadata?: Record<string, unknown>;
 }): ResumeEvent {
@@ -18,9 +17,9 @@ export function createResumeEvent(params: {
   return {
     id: generateResumeId(),
     interruptionId: params.interruptionId,
-    resumedAt: params.resumedAt ?? now,
-    source: params.source ?? 'manual',
-    status: params.status ?? 'resumed',
+    resumedAt: now,
+    source: 'manual',
+    status: params.status,
     snoozeMinutes: params.snoozeMinutes,
     metadata: params.metadata,
   };

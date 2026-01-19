@@ -73,7 +73,7 @@ export default function HomeScreen() {
 
   const [highlight, setHighlight] = useState<boolean>(false);
 
-  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen);
+  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen, reloadHistory);
 
   // 差分表示用に現在時刻を更新（1秒ごと）
   const [now, setNow] = useState(() => Date.now());
@@ -120,24 +120,6 @@ export default function HomeScreen() {
       });
   };
 
-  const handleResume = async () => {
-    if (!latestOpen) return;
-    await markResumed();
-    await reloadHistory();
-  };
-
-  const handleSnooze5 = async () => {
-    if (!latestOpen) return;
-    await markSnoozed(5);
-    await reloadHistory();
-  };
-
-  const handleAbandon = async () => {
-    if (!latestOpen) return;
-    await markAbandoned();
-    await reloadHistory();
-  };
-
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header
@@ -161,9 +143,9 @@ export default function HomeScreen() {
           latestOpen={latestOpen}
           highlight={highlight}
           resumeDiff={resumeDiff}
-          onResume={handleResume}
-          onSnooze5={handleSnooze5}
-          onAbandon={handleAbandon}
+          onResume={markResumed}
+          onSnooze5={markSnoozed}
+          onAbandon={markAbandoned}
         />
       )}
 
