@@ -43,7 +43,7 @@ export default function HomeScreen() {
       await reloadSummary();
     });
 
-  const { diffMs, reload: reloadResumeDiff } = useResumeDiff(latestOpen?.id);
+  const { data: diffMs, reload: reloadResumeDiff } = useResumeDiff(latestOpen?.id);
   const resumeDiff = useMemo(() => {
     if (diffMs === null) {
       return { text: t('home.label.scheduledUnset'), isLate: false };
