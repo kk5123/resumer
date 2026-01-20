@@ -15,7 +15,7 @@ export function HistoryScreen() {
 
   const [range, setRange] = useState<DateRange>({});
 
-  const { items, loading } = useHistory({ from: range.from, to: range.to, limit: 50 });  
+  const { data: items, loading } = useHistory({ from: range.from, to: range.to, limit: 50 });  
   const latest = items[0] ?? null;
   const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
 

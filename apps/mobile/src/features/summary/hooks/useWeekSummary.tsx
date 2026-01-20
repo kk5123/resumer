@@ -24,7 +24,7 @@ async function labelFor(id: TriggerTagId): Promise<string> {
 
 export function useWeekSummary(limit = 200) {
   const { settings } = useSettings();
-  const { items, loading, error, reload } = useHistory({ limit });
+  const { data: items, loading, error, reload } = useHistory({ limit });
   const [frequentLabel, setFrequentLabel] = useState<string>('-');
 
   // 週の範囲とラベルを計算

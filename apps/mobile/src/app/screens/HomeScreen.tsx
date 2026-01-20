@@ -30,7 +30,7 @@ export default function HomeScreen() {
   const { summary, loading: summaryLoading, weekRangeLabel, reload: reloadSummary } = useWeekSummary(200);
 
   // 履歴を取得（ホームは最新1件のみ表示対象）
-  const { items: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
+  const { data: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
   const latest = historyItems[0] ?? null;
   const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
   const hasAnyHistory = historyItems.length > 0;
