@@ -11,6 +11,11 @@ import { useTutorialGate, TutorialModal } from '@/features/tutorial';
 import { STORAGE_KEY_PREFIX } from '@/shared/constants/storage';
 
 import { useAsyncEffect } from '@/shared/hooks';
+import { AdBanner } from '@/shared/components/AdBanner';
+import { View, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const BANNER_HEIGHT = 50;
 
 export default function Root() {
   const [ready, setReady] = useState(false);
@@ -28,7 +33,10 @@ export default function Root() {
       <StatusBar style='dark' />
       <SettingsProvider>
         <ToastProvider>
-          <RootNavigator />
+          <View style={[styles.container, { paddingBottom: BANNER_HEIGHT }]}>
+            <RootNavigator />
+          </View>
+          <AdBannerWrapper />
           {showTutorial && (
             <TutorialModal visible={showTutorial} onComplete={complete} />
           )}
@@ -42,3 +50,26 @@ export default function Root() {
     </SafeAreaProvider>
   );
 }
+
+function AdBannerWrapper() {
+  const insets = useSafeAreaInsets();
+  
+  return (
+    <View style={[styles.adBannerContainer, { paddingBottom: insets.bottom }]}>
+      <AdBanner />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  adBannerContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#f7f9fc',
+  },
+});

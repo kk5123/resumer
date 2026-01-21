@@ -71,7 +71,7 @@ export default function SettingsScreen() {
 
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       <Header title="設定" onLeftPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.sectionTitle}>通知</Text>

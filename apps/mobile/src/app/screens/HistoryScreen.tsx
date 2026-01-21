@@ -46,7 +46,7 @@ export function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
       <Header title={t('nav.history')} onLeftPress={() => navigation.goBack()} />
       <HistoryFilter onChange={setRange} />
       <FlatList

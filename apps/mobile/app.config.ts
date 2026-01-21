@@ -21,6 +21,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: true,
     infoPlist: {
       NSUserNotificationsUsageDescription: '作業再開のリマインダーを設定するために通知権限が必要です。',
+      ITSAppUsesNonExemptEncryption: false,
     },
   },
   android: {
@@ -44,7 +45,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     '@react-native-community/datetimepicker',
     'expo-notifications',
-    'react-native-google-mobile-ads'
+    [
+      'react-native-google-mobile-ads',
+      {
+        iosAppId: process.env.ADMOB_APP_ID_IOS,
+        androidAppId: process.env.ADMOB_APP_ID_ANDROID,
+      },
+    ],
   ],
   extra: {
     appNameEn: 'Pause Memo',
