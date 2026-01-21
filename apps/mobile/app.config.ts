@@ -44,6 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   plugins: [
     '@react-native-community/datetimepicker',
     'expo-notifications',
+    'react-native-google-mobile-ads'
   ],
   extra: {
     appNameEn: 'Pause Memo',
