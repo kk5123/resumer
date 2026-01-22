@@ -1,5 +1,32 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+const APP_ENV = process.env.APP_ENV ?? 'development';
+
+const ADMOB_APP_ID_IOS =
+  APP_ENV === 'preview' || APP_ENV === 'production'
+    ? process.env.ADMOB_APP_ID_IOS
+    : undefined;
+
+const ADMOB_APP_ID_ANDROID =
+  APP_ENV === 'preview' || APP_ENV === 'production'
+    ? process.env.ADMOB_APP_ID_ANDROID
+    : undefined;
+
+const plugins: ExpoConfig['plugins'] = [
+  '@react-native-community/datetimepicker',
+  'expo-notifications',
+];
+
+if (APP_ENV === 'preview' || APP_ENV === 'production') {
+  plugins.push([
+    'react-native-google-mobile-ads',
+    {
+      iosAppId: ADMOB_APP_ID_IOS,
+      androidAppId: ADMOB_APP_ID_ANDROID,
+    },
+  ]);
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: '中断メモ',
@@ -42,17 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   web: {
     favicon: './assets/icon.png',
   },
-  plugins: [
-    '@react-native-community/datetimepicker',
-    'expo-notifications',
-    [
-      'react-native-google-mobile-ads',
-      {
-        iosAppId: process.env.ADMOB_APP_ID_IOS,
-        androidAppId: process.env.ADMOB_APP_ID_ANDROID,
-      },
-    ],
-  ],
+  plugins,
   extra: {
     appNameEn: 'Pause Memo',
     eas: {
