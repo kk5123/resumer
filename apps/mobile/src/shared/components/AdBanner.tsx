@@ -3,15 +3,15 @@ import { View, StyleSheet, Platform, Text } from 'react-native';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 // EAS / .env で設定している想定: development / preview / production
-const APP_ENV = process.env.APP_ENV ?? 'development';
+const APP_ENV = Constants.expoConfig?.extra?.appEnv ?? 'development';
 const BANNER_UNIT_ID = Platform.OS === 'ios'
-  ? process.env.ADMOB_BANNER_ID_IOS
-  : process.env.ADMOB_BANNER_ID_ANDROID;
+  ? Constants.expoConfig?.extra?.admobBannerIdIos
+  : Constants.expoConfig?.extra?.admobBannerIdAndroid;
 
 // Expo Go かどうか
 const isStoreClient = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
-// preview / production だけ実広告を出したい
+// production だけ実広告を出したい
 const shouldUseRealAds =
   !isStoreClient && APP_ENV === 'production';
 

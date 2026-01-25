@@ -4,12 +4,12 @@ const APP_ENV = process.env.APP_ENV ?? 'development';
 
 const ADMOB_APP_ID_IOS =
   APP_ENV === 'preview' || APP_ENV === 'production'
-    ? process.env.ADMOB_APP_ID_IOS
+    ? process.env.ADMOB_APP_ID_IOS // eas envから注入
     : undefined;
 
 const ADMOB_APP_ID_ANDROID =
   APP_ENV === 'preview' || APP_ENV === 'production'
-    ? process.env.ADMOB_APP_ID_ANDROID
+    ? process.env.ADMOB_APP_ID_ANDROID // eas envから注入
     : undefined;
 
 const plugins: ExpoConfig['plugins'] = [
@@ -31,7 +31,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: '中断メモ',
   slug: 'pause-memo',
-  version: '0.1.0',
+  version: '1.0.0',
   description: '作業を中断した瞬間を素早く記録し、次に再開するときの迷いを減らすためのメモアプリです。中断理由や次にやるべきことをその場で残すことで、作業の文脈を失わずに復帰できます。タスク管理ではなく、中断という一瞬にフォーカスしたシンプルな設計が特徴です。',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -74,6 +74,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     appNameEn: 'Pause Memo',
     eas: {
       projectId: "e8f8af05-2e4b-4b70-8301-aadc743e86ee"
-    }
+    },
+    appEnv: APP_ENV,
+    admobBannerIdIos: ADMOB_APP_ID_IOS,
+    admobBannerIdAndroid: ADMOB_APP_ID_ANDROID,
   },
 });
