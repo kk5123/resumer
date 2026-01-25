@@ -1,4 +1,5 @@
 // features/tutorial/components/TutorialScreen.tsx
+import { Card } from '@/shared/components';
 import React, { useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import { Animated, Easing, } from 'react-native';
@@ -34,27 +35,29 @@ export function TutorialModal({ visible, onComplete }: Props) {
   return (
     <View style={styles.overlay}>
       <Animated.View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.25)', opacity }]} />
-      <Animated.View style={[styles.card, { transform: [{ scale }], opacity }]}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>このアプリの使い方</Text>
-          <Text style={styles.headerBody}>作業が中断したきっかけを記録して、再開を手助けします。履歴で振り返りができます。</Text>
-        </View>
-        {slides.map((s, i) => (
-          <View key={i} style={styles.slide}>
-            <View style={styles.badge}>
-              <Text style={styles.badgeText}>{i + 1}</Text>
-            </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={styles.title}>{s.title}</Text>
-              <Text style={styles.body}>{s.body}</Text>
-            </View>
+      <Animated.View style={{ transform: [{ scale }], opacity }}>
+        <Card variant='elevated' style={styles.card}>
+          <View style={styles.header}>
+            <Text style={styles.headerTitle}>このアプリの使い方</Text>
+            <Text style={styles.headerBody}>作業が中断したきっかけを記録して、再開を手助けします。履歴で振り返りができます。</Text>
           </View>
-        ))}
-        <View style={styles.actions}>
-          <TouchableOpacity style={[styles.button, styles.primary]} onPress={handleStart} activeOpacity={0.9}>
-            <Text style={styles.buttonTextPrimary}>はじめる</Text>
-          </TouchableOpacity>
-        </View>
+          {slides.map((s, i) => (
+            <View key={i} style={styles.slide}>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{i + 1}</Text>
+              </View>
+              <View style={{ flex: 1, gap: 4 }}>
+                <Text style={styles.title}>{s.title}</Text>
+                <Text style={styles.body}>{s.body}</Text>
+              </View>
+            </View>
+          ))}
+          <View style={styles.actions}>
+            <TouchableOpacity style={[styles.button, styles.primary]} onPress={handleStart} activeOpacity={0.9}>
+              <Text style={styles.buttonTextPrimary}>はじめる</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
       </Animated.View>
     </View>
   );
@@ -65,18 +68,7 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 0, left: 0, width, height,
     backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center',
   },
-  card: {
-    width: Math.min(360, width - 48),
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    gap: 16,
-    elevation: 6,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 8 },
-  },
+  card: { width: Math.min(360, width - 48), padding: 20, gap: 16 },
   header: { gap: 6 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: '#111' },
   headerBody: { fontSize: 13, color: '#4b5563' },

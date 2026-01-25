@@ -1,5 +1,5 @@
-import { setInterruptPorts } from '@/features/interrupt/ports'
-import { setResumePorts } from '@/features/resume/ports';
+import { setInterruptPorts } from '@/features/interrupt'
+import { setResumePorts } from '@/features/resume';
 import { AsyncStorageInterruptionRepository } from '@/infra/interruption'
 import { AsyncStorageCustomTriggerTagRepository } from '@/infra/triggerTag'
 import { AsyncStorageResumeRepository } from '@/infra/resume';

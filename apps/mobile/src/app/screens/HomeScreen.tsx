@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -7,88 +7,52 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { InterruptButton, InterruptCaptureModal } from '@/features/interrupt';
 import { t } from '@/shared/i18n/strings';
-import { formatDiffHuman } from '@/shared/utils/date';
+import { useResumeDiff } from './hooks/useResumeDiff';
 import { useResumeActions } from '@/features/resume/hooks/useResumeActions';
 import { useHistory } from '@/features/history';
 
 import { RootStackParamList } from '../navigation/RootNavigator';
 
-import { SummaryCard, useTodaySummary } from '@/features/summary';
+import { SummaryCard, useWeekSummary } from '@/features/summary';
 
 import { upsertResumeNotification, useNotificationResponse } from '@/features/notification';
 import { InterruptionEvent } from '@/domain/interruption';
 import { LatestOpenCard } from './components/LatestOpenCard';
-import { useWeekSummary } from '@/features/summary/hooks/useWeekSummary';
-
-type HeaderActions = {
-  onPressHistory: () => void;
-  onPressSettings: () => void;
-}
-
-function Header({ onPressHistory, onPressSettings }: HeaderActions) {
-  return (
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>{t('app.title')}</Text>
-      <View style={styles.headerActions}>
-        <TouchableOpacity onPress={onPressHistory} style={styles.headerButton} hitSlop={8}>
-          <Ionicons name="time-outline" size={22} color="#1f2937" />
-        </TouchableOpacity>
-        <TouchableOpacity onPress={onPressSettings} style={styles.headerButton} hitSlop={8}>
-          <Ionicons name="settings-outline" size={22} color="#1f2937" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-}
-
-function SummaryCardContainer() {
-  const { summary, loading, weekRangeLabel } = useWeekSummary(200);
-
-  if (loading)
-    return null;
-
-  return (
-    <SummaryCard
-      dateLabel="今週"
-      weekRange={weekRangeLabel}
-      total={summary.total}
-      resumed={summary.resumed}
-      abandoned={summary.abandoned}
-      snoozed={summary.snoozed}
-      frequentTrigger={summary.frequentTrigger}
-    />
-  );
-}
+import { formatDiffHuman } from '@/shared/utils/date';
+import { ScrollView } from 'react-native';
+import { Header } from '@/shared/components';
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [visible, setVisible] = useState(false);
 
+  const { summary, loading: summaryLoading, weekRangeLabel, reload: reloadSummary } = useWeekSummary(200);
+
   // 履歴を取得（ホームは最新1件のみ表示対象）
-  const { items: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
+  const { data: historyItems, loading: historyLoading, reload: reloadHistory } = useHistory({ limit: 1 });
   const latest = historyItems[0] ?? null;
   const latestOpen = latest && latest.resumeStatus !== 'abandoned' && latest.resumeStatus !== 'resumed' ? latest : null;
   const hasAnyHistory = historyItems.length > 0;
 
   const [highlight, setHighlight] = useState<boolean>(false);
 
-  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen);
+  const { markResumed, markSnoozed, markAbandoned } = useResumeActions(latestOpen,
+    async () => {
+      await reloadHistory();
+      await reloadSummary();
+    });
 
-  // 差分表示用に現在時刻を更新（1秒ごと）
-  const [now, setNow] = useState(() => Date.now());
-  useEffect(() => {
-    const tId = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(tId);
-  }, []);
-
+  const { data: diffMs, reload: reloadResumeDiff } = useResumeDiff(latestOpen?.id);
   const resumeDiff = useMemo(() => {
-    if (!latestOpen?.scheduledResumeAt) return { text: t('home.label.scheduledUnset'), isLate: false };
-    const scheduled = new Date(latestOpen.scheduledResumeAt).getTime();
-    if (Number.isNaN(scheduled)) return { text: t('home.label.scheduledUnset'), isLate: false };
-    const diffMs = now - scheduled;
-    return { text: formatDiffHuman(diffMs, { includeSeconds: true }), isLate: diffMs > 0 };
-  }, [latestOpen?.scheduledResumeAt, now]);
+    if (diffMs === null) {
+      return { text: t('home.label.scheduledUnset'), isLate: false };
+    }
+    return {
+      text: formatDiffHuman(diffMs, { includeSeconds: true }),
+      isLate: diffMs > 0,
+    };
+  }, [diffMs]);
 
   const hideHighlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -114,80 +78,115 @@ export default function HomeScreen() {
     if (e.scheduledResumeAt)
       upsertResumeNotification({
         interruptionId: e.id,
-        title: t('app.title'),
-        body: e.context.firstStepText || t('notification.fallback'),
         triggerDate: new Date(e.scheduledResumeAt)
       });
   };
 
-  const handleResume = async () => {
-    if (!latestOpen) return;
-    await markResumed();
-    await reloadHistory();
-  };
-
-  const handleSnooze5 = async () => {
-    if (!latestOpen) return;
-    await markSnoozed(5);
-    await reloadHistory();
-  };
-
-  const handleAbandon = async () => {
-    if (!latestOpen) return;
-    await markAbandoned();
-    await reloadHistory();
-  };
+  const handleInterruptButtonPress = useCallback(() => {
+    if (latestOpen) {
+      Alert.alert(
+        '前回の中断があります',
+        '新しい中断を記録する前に、既存の中断を終了してください',
+        [
+          { text: 'キャンセル', style: 'cancel', },
+          { text: '終了して新規記録', style: 'destructive', onPress: async () => { await markAbandoned(); setVisible(true); }, },
+        ]
+      );
+    } else {
+      setVisible(true);
+    }
+  }, [latestOpen, markAbandoned]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header
-        onPressHistory={() => navigation.navigate('History')}
-        onPressSettings={() => navigation.navigate('Settings')}
+        titleAlign='left'
+        titleContent={
+          <View style={styles.headerTitleContainer}>
+            <Image source={require('../../../assets/icon.png')} style={styles.headerIcon} resizeMode='contain' />
+            <Text style={styles.headerTitle}>{t('app.title')}</Text>
+          </View>
+        }
+        rightActions={[
+          { icon: 'time-outline', onPress: () => navigation.navigate('History') },
+          { icon: 'settings-outline', onPress: () => navigation.navigate('Settings') },
+        ]}
+        backgroundColor='#fcfcfc'
       />
 
-      <SummaryCardContainer />
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {!summaryLoading && (
+          <SummaryCard
+            dateLabel='今週'
+            weekRange={weekRangeLabel}
+            total={summary.total}
+            resumed={summary.resumed}
+            abandoned={summary.abandoned}
+            snoozed={summary.snoozed}
+            frequentTrigger={summary.frequentTrigger}
+          />
+        )}
 
-      <InterruptButton onPress={() => setVisible((v) => !v)} />
-      {visible && (
-        <InterruptCaptureModal
-          visible={visible}
-          onCancel={() => setVisible(false)}
-          onSave={handleInterruptionSaved}
-        />
-      )}
+        <View style={styles.interruptButtonContainer}>
+          <InterruptButton onPress={handleInterruptButtonPress} />
+        </View>
 
-      {latestOpen && (
-        <LatestOpenCard
-          latestOpen={latestOpen}
-          highlight={highlight}
-          resumeDiff={resumeDiff}
-          onResume={handleResume}
-          onSnooze5={handleSnooze5}
-          onAbandon={handleAbandon}
-        />
-      )}
+        {latestOpen && (
+          <LatestOpenCard
+            latestOpen={latestOpen}
+            highlight={highlight}
+            resumeDiff={resumeDiff}
+            onResume={markResumed}
+            onSnooze5={async () => { await markSnoozed(); reloadResumeDiff(); }}
+            onAbandon={markAbandoned}
+          />
+        )}
 
-      {!latestOpen && !historyLoading && !hasAnyHistory && (
-        <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
-      )}
+        {!latestOpen && !historyLoading && !hasAnyHistory && (
+          <Text style={styles.recentEmpty}>{t('home.empty')}</Text>
+        )}
 
+        {visible && (
+          <InterruptCaptureModal
+            visible={visible}
+            onCancel={() => setVisible(false)}
+            onSave={handleInterruptionSaved}
+          />
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    height: 56,
-    width: '100%',
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+  headerTitleContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, },
+  headerIcon: { width: 60, height: 60, marginLeft: -20, },
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#111' },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerButton: { paddingHorizontal: 6 },
-  container: { flex: 1, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'flex-start', padding: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: '#fcfcfc',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 16,
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    paddingTop: 8,
+    alignItems: 'center',
+    gap: 16,
+  },
+  interruptButtonContainer: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 8,
+  },
   card: { width: '100%', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, gap: 8, marginTop: 16 },
   cardTitle: { fontSize: 16, fontWeight: '700' },
   label: { fontSize: 13, color: '#1f2937' },

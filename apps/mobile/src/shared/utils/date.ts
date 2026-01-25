@@ -60,3 +60,47 @@ export function formatDiffHuman(diffMs: number, opts: FormatDiffOptions = {}) {
 
   return `${sign}${parts.join('')}`;
 }
+
+export const DateHelpers = {
+  startOfDay(date: Date = new Date()): Date {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  },
+  
+  endOfDay(date: Date = new Date()): Date {
+    const d = new Date(date);
+    d.setHours(23, 59, 59, 999);
+    return d;
+  },
+  
+  addMinutes(date: Date | string, minutes: number): Date {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    return new Date(d.getTime() + minutes * 60_000);
+  },
+  
+  getWeekRange(date: Date = new Date(), weekStart: 'monday' | 'sunday'): {
+    start: Date;
+    end: Date;
+  } {
+    const start = DateHelpers.startOfDay(date);
+    const dayOfWeek = start.getDay();
+    const daysToStart = weekStart === 'monday' 
+      ? (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+      : dayOfWeek;
+    
+    start.setDate(start.getDate() - daysToStart);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    
+    return { start, end };
+  },
+  
+  formatWithWeekday(date: Date, locale = 'ja-JP'): string {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(date);
+    return `${month}/${day}(${weekday})`;
+  },
+};

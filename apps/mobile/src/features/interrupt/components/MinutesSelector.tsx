@@ -41,19 +41,20 @@ export function MinutesSelector({
 
   return (
     <>
-      <View style={[styles.row, { alignItems: 'center' }]}>
-        <Pressable onPress={handleDec} style={styles.stepperButton}>
-          <Text style={styles.stepperText}>-</Text>
-        </Pressable>
-
+      <View style={[styles.row, { alignItems: 'center', justifyContent: 'space-between' }]}>
         <View style={styles.minutesBox}>
           <Text style={styles.minutesValue}>{value ?? t('interruptModal.minites.undecided')}</Text>
           <Text style={styles.minutesLabel}>{value != null ? t('interruptModal.unit.minute') : ''}</Text>
         </View>
 
-        <Pressable onPress={handleInc} style={styles.stepperButton}>
-          <Text style={styles.stepperText}>+</Text>
-        </Pressable>
+        <View style={styles.stepperContainer}>
+          <Pressable onPress={handleDec} style={styles.stepperButton}>
+            <Text style={styles.stepperText}>-</Text>
+          </Pressable>
+          <Pressable onPress={handleInc} style={styles.stepperButton}>
+            <Text style={styles.stepperText}>+</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.quickRow}>
@@ -71,25 +72,64 @@ export function MinutesSelector({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 10 },
-  stepperButton: {
-    borderWidth: 1,
-    borderRadius: 12,
-    width: 48,
-    height: 48,
+  row: { 
+    flexDirection: 'row', 
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
-  stepperText: { fontSize: 20, fontWeight: '700' },
   minutesBox: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    justifyContent: 'center',
-    width: 110,
+    justifyContent: 'flex-start',
+    flex: 1,
   },
-  minutesValue: { fontSize: 28, fontWeight: '700' },
-  minutesLabel: { marginLeft: 6, fontSize: 14, opacity: 0.7 },
-  quickRow: { flexDirection: 'row', gap: 10, marginTop: 12, flexWrap: 'wrap' },
-  quickButton: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
-  quickButtonText: { fontWeight: '600' },
+  minutesValue: { 
+    fontSize: 24, 
+    fontWeight: '700',
+    color: '#111',
+  },
+  minutesLabel: { 
+    marginLeft: 4, 
+    fontSize: 13, 
+    color: '#6b7280',
+  },
+  stepperContainer: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  stepperButton: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    width: 48,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+  },
+  stepperText: { 
+    fontSize: 18, 
+    fontWeight: '700',
+    color: '#374151',
+  },
+  quickRow: { 
+    flexDirection: 'row', 
+    gap: 6, 
+    marginTop: 10, 
+    flexWrap: 'wrap' 
+  },
+  quickButton: { 
+    borderWidth: 1, 
+    borderColor: '#d1d5db',
+    borderRadius: 999, 
+    paddingHorizontal: 10, 
+    paddingVertical: 6,
+    backgroundColor: '#ffffff',
+  },
+  quickButtonText: { 
+    fontSize: 13, 
+    fontWeight: '600',
+    color: '#374151',
+  },
 });

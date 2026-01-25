@@ -4,6 +4,8 @@ import { useHistory } from '@/features/history';
 import { TriggerTagId } from '@/domain/common.types';
 import { PRESET_TRIGGER_TAGS } from '@/domain/triggerTag';
 import { getInterruptPorts } from '@/features/interrupt/ports';
+import { useAsyncEffect } from '@/shared/hooks';
+import { DateHelpers } from '@/shared/utils/date';
 
 export type FrequentTrigger = { tagId: TriggerTagId; count: number };
 
@@ -22,14 +24,12 @@ async function labelFor(id: TriggerTagId): Promise<string> {
 }
 
 export function useTodaySummary(limit = 200) {
-  const startOfToday = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d.getTime();
-  }, []);
-
   const { items, loading, error, reload } = useHistory({ limit });
   const [frequentLabel, setFrequentLabel] = useState<string>('-');
+
+  const startOfToday = useMemo(() => {
+    return DateHelpers.startOfDay().getTime();
+  }, []);
 
   const todayItems = useMemo(
     () => items.filter((it) => new Date(it.occurredAt).getTime() >= startOfToday),
@@ -64,14 +64,13 @@ export function useTodaySummary(limit = 200) {
     return { tagId: best.tagId, count: best.count };
   }, [todayItems]);
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      if (!frequentTrigger) { setFrequentLabel('-'); return; }
-      const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
-      if (mounted) setFrequentLabel(`${label}     ${frequentTrigger.count}`);
-    })();
-    return () => { mounted = false; };
+  useAsyncEffect(async () => {
+    if (!frequentTrigger) {
+      setFrequentLabel('-');
+      return;
+    }
+    const label = await labelFor(frequentTrigger.tagId as TriggerTagId);
+    setFrequentLabel(`${label}     ${frequentTrigger.count}`);
   }, [frequentTrigger]);
 
   const summary = useMemo(() => {

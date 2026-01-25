@@ -1,4 +1,4 @@
-import { ISODateTime } from "../common.types";
+import { ISODateTime, InterruptionId } from "../common.types";
 import { InterruptionEvent } from "./types";
 
 export type HistoryQuery = {
@@ -12,6 +12,7 @@ export interface InterruptionRepository {
   findLatest(): Promise<InterruptionEvent | null>;
   listRecent(limit: number): Promise<InterruptionEvent[]>;
   update(event: InterruptionEvent): Promise<void>;
+  findById(id: InterruptionId): Promise<InterruptionEvent | null>;
 
   listByPeriod(params: HistoryQuery): Promise<InterruptionEvent[]>;
 

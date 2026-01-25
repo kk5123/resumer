@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { deleteAllHistoryData } from '@/features/settings';
 import { useToast } from '@/shared/components/ToastProvider';
 import { FEEDBACK_FORM_URL } from '@/shared/constants/config';
+import { Header } from '@/shared/components';
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -70,13 +71,8 @@ export default function SettingsScreen() {
 
 
   return (
-    <SafeAreaView style={styles.root} edges={['top', 'left', 'right', 'bottom']}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name='chevron-back' size={22} color='#2563eb' />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>設定</Text>
-      </View>
+    <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
+      <Header title="設定" onLeftPress={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.sectionTitle}>通知</Text>
         <Row
@@ -144,30 +140,4 @@ const styles = StyleSheet.create({
   disabledRow: { opacity: 0.4 },
 
   root: { flex: 1, backgroundColor: '#f7f9fc' },
-  header: {
-    position: 'relative',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-    minHeight: 56,            // ヘッダー高さを安定させる
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center', // タイトル中央
-    backgroundColor: '#f7f9fc',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 16,                 // 左端寄せ
-    height: 40,
-    width: 40,
-    justifyContent: 'center', // アイコン縦中央
-    alignItems: 'flex-start', // 左寄せ
-    paddingVertical: 0,
-    paddingRight: 0,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#111',
-    textAlign: 'center',
-  },
 });

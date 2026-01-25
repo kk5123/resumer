@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { DateRange } from '@/domain/common.types';
+import { DateHelpers } from '@/shared/utils/date';
 
 type PresetKey = '7d' | '30d' | '90d' | 'all';
 
@@ -18,12 +19,11 @@ const presets: { key: PresetKey; label: string; getRange: () => DateRange }[] = 
 ];
 
 function rangeDays(pastDays: number): DateRange {
-  const to = endOfToday();
-  const from = startOfDay(new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000));
+  const to = DateHelpers.endOfDay();
+  const from = DateHelpers.startOfDay(new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000));
   return { from, to };
 }
-function startOfDay(d: Date) { const nd = new Date(d); nd.setHours(0,0,0,0); return nd; }
-function endOfToday() { const d = new Date(); d.setHours(23,59,59,999); return d; }
+
 function formatDate(d?: Date) { if (!d) return '-'; return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 
 export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
@@ -56,8 +56,8 @@ export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
     const picked = date ?? new Date();
     setRange((prev) => {
       const next: DateRange = { ...prev };
-      if (pickerState.mode === 'from') next.from = startOfDay(picked);
-      else next.to = endOfDay(picked);
+      if (pickerState.mode === 'from') next.from = DateHelpers.startOfDay(picked);
+      else next.to = DateHelpers.endOfDay(picked);
       return next;
     });
     // 選択後は必ず閉じる
@@ -66,8 +66,8 @@ export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
 
   const applyCustom = useCallback(() => {
     const normalized: DateRange = {
-      from: range.from ? startOfDay(range.from) : undefined,
-      to: range.to ? endOfDay(range.to) : undefined,
+      from: range.from ? DateHelpers.startOfDay(range.from) : undefined,
+      to: range.to ? DateHelpers.endOfDay(range.to) : undefined,
     };
     setRange(normalized);
     setUseCustom(true);
@@ -117,9 +117,6 @@ export function HistoryFilter({ onChange, defaultPreset = '7d' }: Props) {
     </View>
   );
 }
-
-// 日終端を揃える補助
-function endOfDay(d: Date) { const nd = new Date(d); nd.setHours(23,59,59,999); return nd; }
 
 const styles = StyleSheet.create({
   root: { gap: 8, paddingHorizontal: 12, paddingTop: 8 },

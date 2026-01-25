@@ -11,8 +11,7 @@ build
 coverage
 
 # env
-.env
-.env.*
+.env.local
 
 # misc
 .DS_Store

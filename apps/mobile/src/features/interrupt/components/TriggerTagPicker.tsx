@@ -2,11 +2,8 @@ import { forwardRef, useImperativeHandle, useMemo, useState } from 'react';
 import { Keyboard, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { t } from '@/shared/i18n/strings';
 
-import { CustomTriggerTagRepository, generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
+import { generateTriggerTagIdFromLabel, PRESET_TRIGGER_TAGS, TriggerTag } from '@/domain/triggerTag';
 import { TriggerTagId } from '@/domain/common.types';
-
-import { getInterruptPorts } from '../ports';
-import { useEffect } from 'react';
 
 export type TriggerTagPickerHandle = {
   getSelection: () => { selectedIds: TriggerTagId[]; customTags: TriggerTag[] };
@@ -124,14 +121,14 @@ const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 6,
   },
   chip: {
     borderWidth: 1,
     borderColor: '#d0d7e2',
     borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     backgroundColor: '#fff',
   },
   chipActive: {
